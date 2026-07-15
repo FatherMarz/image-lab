@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>image lab — background removal, colour tools, all in your browser</title>
+    <meta
+      name="description"
+      content="Remove backgrounds, extract palettes, swap and delete colours, crop, upscale and convert images. Everything runs locally in your browser — nothing is uploaded and nothing is stored."
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href="https://images.modul4r.com/" />
+    <meta name="author" content="Modul4r" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://images.modul4r.com/" />
+    <meta property="og:title" content="image lab — a local image suite" />
+    <meta
+      property="og:description"
+      content="Remove backgrounds, extract palettes, swap colours, crop and convert. Runs entirely in your browser; nothing is uploaded."
+    />
+    <meta property="og:site_name" content="image lab — a Modul4r tool" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="image lab — a local image suite" />
+    <meta
+      name="twitter:description"
+      content="Remove backgrounds, extract palettes, swap colours, crop and convert. Runs entirely in your browser."
+    />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "image lab",
+        "url": "https://images.modul4r.com/",
+        "applicationCategory": "MultimediaApplication",
+        "operatingSystem": "Any",
+        "description": "Local, in-browser image suite: background removal, colour palette extraction, colour swap and delete, crop, upscale and format conversion. No upload, no server.",
+        "offers": { "@type": "Offer", "price": "0" },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Modul4r",
+          "url": "https://modul4r.com"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>
+      image lab edits images locally in your browser and needs JavaScript. More tools at
+      <a href="https://modul4r.com">modul4r.com</a>.
+    </noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
