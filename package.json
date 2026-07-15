@@ -9,10 +9,12 @@
     "preview": "vite preview",
     "e2e": "node scripts/e2e.mjs",
     "e2e:bg": "node scripts/e2e-bg.mjs",
-    "e2e:color": "node scripts/e2e-color.mjs"
+    "e2e:color": "node scripts/e2e-color.mjs",
+    "e2e:transform": "node scripts/e2e-transform.mjs"
   },
   "dependencies": {
     "@huggingface/transformers": "^4.2.0",
+    "pica": "^10.0.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zustand": "^5.0.14"

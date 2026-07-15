@@ -13,11 +13,18 @@ export default function Viewport() {
 
   const pickTarget = useEditor((s) => s.pickTarget);
   const pickColor = useEditor((s) => s.pickColor);
+  const cropEditing = useEditor((s) => s.cropEditing);
+  const ops = useEditor((s) => s.ops);
+  const activeOpId = useEditor((s) => s.activeOpId);
+  const updateParams = useEditor((s) => s.updateParams);
+
+  const cropOp = cropEditing ? ops.find((o) => o.id === activeOpId) : undefined;
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [comparing, setComparing] = useState(false);
   const [split, setSplit] = useState(0.5);
   const [dragging, setDragging] = useState(false);
+  const cropStart = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     const c = canvasRef.current;
@@ -42,7 +49,39 @@ export default function Viewport() {
       cx.fillStyle = "rgb(214, 156, 74)";
       cx.fillRect(x - 1, 0, 2, c.height);
     }
-  }, [preview, original, comparing, split]);
+
+    if (cropOp) {
+      const { x, y, w, h } = cropOp.params as Record<string, number>;
+      const rx = x * c.width;
+      const ry = y * c.height;
+      const rw = w * c.width;
+      const rh = h * c.height;
+
+      // Darken everything outside the box so the keep-area reads immediately.
+      cx.fillStyle = "rgba(20, 22, 18, 0.66)";
+      cx.fillRect(0, 0, c.width, ry);
+      cx.fillRect(0, ry + rh, c.width, c.height - (ry + rh));
+      cx.fillRect(0, ry, rx, rh);
+      cx.fillRect(rx + rw, ry, c.width - (rx + rw), rh);
+
+      cx.strokeStyle = "rgb(214, 156, 74)";
+      cx.lineWidth = Math.max(1, c.width / 400);
+      cx.strokeRect(rx, ry, rw, rh);
+
+      // Thirds guides
+      cx.globalAlpha = 0.35;
+      cx.lineWidth = Math.max(1, c.width / 900);
+      for (let i = 1; i < 3; i++) {
+        cx.beginPath();
+        cx.moveTo(rx + (rw / 3) * i, ry);
+        cx.lineTo(rx + (rw / 3) * i, ry + rh);
+        cx.moveTo(rx, ry + (rh / 3) * i);
+        cx.lineTo(rx + rw, ry + (rh / 3) * i);
+        cx.stroke();
+      }
+      cx.globalAlpha = 1;
+    }
+  }, [preview, original, comparing, split, cropOp]);
 
   function updateSplit(e: React.PointerEvent<HTMLCanvasElement>) {
     const r = e.currentTarget.getBoundingClientRect();
@@ -59,6 +98,47 @@ export default function Viewport() {
     const y = Math.floor(((e.clientY - r.top) / r.height) * c.height);
     const d = c.getContext("2d")!.getImageData(x, y, 1, 1).data;
     pickColor(rgbToHex(d[0], d[1], d[2]));
+  }
+
+  /** Cursor position in normalized 0..1 image space, which is how crop params are stored. */
+  function norm(e: React.PointerEvent<HTMLCanvasElement>) {
+    const r = e.currentTarget.getBoundingClientRect();
+    return {
+      x: Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)),
+      y: Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)),
+    };
+  }
+
+  function dragCrop(e: React.PointerEvent<HTMLCanvasElement>) {
+    if (!cropOp || !cropStart.current) return;
+    const p = norm(e);
+    const s = cropStart.current;
+
+    let x = Math.min(s.x, p.x);
+    let y = Math.min(s.y, p.y);
+    let w = Math.abs(p.x - s.x);
+    let h = Math.abs(p.y - s.y);
+
+    const ratio = Number(cropOp.params.ratio) || 0;
+    if (ratio > 0) {
+      // Ratio is in pixel space, so convert through the image's own aspect before
+      // constraining the normalized box.
+      const c = canvasRef.current!;
+      const imgAspect = c.width / c.height;
+      const target = ratio / imgAspect;
+      if (w / h > target) w = h * target;
+      else h = w / target;
+      x = Math.min(s.x, p.x) === s.x ? s.x : s.x - w;
+      y = Math.min(s.y, p.y) === s.y ? s.y : s.y - h;
+    }
+
+    if (w < 0.02 || h < 0.02) return;
+    updateParams(cropOp.id, {
+      x: Math.max(0, Math.min(x, 1 - w)),
+      y: Math.max(0, Math.min(y, 1 - h)),
+      w,
+      h,
+    });
   }
 
   const downloading = progress?.phase === "downloading" && progress.total;
@@ -92,17 +172,28 @@ export default function Viewport() {
             className="max-h-full max-w-full object-contain"
             style={{ cursor: comparing ? "ew-resize" : "crosshair" }}
             onClick={(e) => {
-              if (!comparing) sample(e);
+              if (!comparing && !cropOp) sample(e);
             }}
             onPointerDown={(e) => {
-              if (!comparing) return;
+              if (!comparing && !cropOp) return;
               setDragging(true);
               e.currentTarget.setPointerCapture(e.pointerId);
-              updateSplit(e);
+              if (cropOp) cropStart.current = norm(e);
+              else updateSplit(e);
             }}
-            onPointerMove={(e) => dragging && updateSplit(e)}
-            onPointerUp={() => setDragging(false)}
-            onPointerCancel={() => setDragging(false)}
+            onPointerMove={(e) => {
+              if (!dragging) return;
+              if (cropOp) dragCrop(e);
+              else updateSplit(e);
+            }}
+            onPointerUp={() => {
+              setDragging(false);
+              cropStart.current = null;
+            }}
+            onPointerCancel={() => {
+              setDragging(false);
+              cropStart.current = null;
+            }}
           />
         ) : (
           <span className="text-xs text-text-muted">Rendering…</span>
@@ -127,6 +218,7 @@ export default function Viewport() {
         </div>
 
         <div className="flex items-center gap-3">
+          {cropOp && <span className="text-accent">Drag a box to crop</span>}
           {pickTarget && <span className="text-accent">Click the image to pick a colour</span>}
           <button
             type="button"

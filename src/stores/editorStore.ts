@@ -26,6 +26,8 @@ interface EditorState {
   picked: string | null;
   /** When set, the next canvas click writes the colour into this op param. */
   pickTarget: { opId: string; key: string } | null;
+  /** True while the crop op is selected and therefore bypassed in the preview. */
+  cropEditing: boolean;
 
   loadFile: (file: File) => Promise<void>;
   setPickTarget: (t: { opId: string; key: string } | null) => void;
@@ -47,9 +49,20 @@ export const useEditor = create<EditorState>((set, get) => {
   async function render() {
     if (!get().source) return;
     const token = ++renderToken;
-    set({ busy: true });
+
+    // While the crop tool is selected, bypass it so the full frame stays visible and
+    // draggable — you can't drag a crop box on an already-cropped image. It re-applies
+    // the moment another tool is selected.
+    const { ops, activeOpId } = get();
+    const active = ops.find((o) => o.id === activeOpId);
+    const cropEditing = active?.type === "crop" && active.enabled;
+    const renderOps = cropEditing
+      ? ops.map((o) => (o.id === activeOpId ? { ...o, enabled: false } : o))
+      : ops;
+
+    set({ busy: true, cropEditing: Boolean(cropEditing) });
     try {
-      const res = await pipeline.render(get().ops, PREVIEW_MAX);
+      const res = await pipeline.render(renderOps, PREVIEW_MAX);
       if (token !== renderToken) {
         // A newer render already landed; this result is stale.
         res.bitmap.close();
@@ -83,6 +96,7 @@ export const useEditor = create<EditorState>((set, get) => {
     error: null,
     picked: null,
     pickTarget: null,
+    cropEditing: false,
 
     setPickTarget(t) {
       set({ pickTarget: t });
@@ -133,7 +147,7 @@ export const useEditor = create<EditorState>((set, get) => {
       const existing = get().ops.find((o) => o.type === type);
       // One instance per op type keeps the stack readable; re-picking a tool focuses it.
       if (existing) {
-        set({ activeOpId: existing.id });
+        get().setActiveOp(existing.id);
         return;
       }
       const op: Op = {
@@ -182,6 +196,8 @@ export const useEditor = create<EditorState>((set, get) => {
 
     setActiveOp(id) {
       set({ activeOpId: id });
+      // Re-render: selecting or leaving the crop tool changes what the preview shows.
+      schedule();
     },
 
     clearStack() {

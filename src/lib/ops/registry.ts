@@ -170,15 +170,77 @@ export const OP_META: Record<string, OpMeta> = {
     type: "adjust",
     label: "Adjust",
     group: "transform",
-    blurb: "Brightness, contrast, saturation.",
-    defaults: { brightness: 0, contrast: 0, saturation: 0 },
+    blurb: "Brightness, contrast, saturation, sharpen.",
+    defaults: { brightness: 0, contrast: 0, saturation: 0, sharpen: 0 },
     controls: [
       { kind: "slider", key: "brightness", label: "Brightness", min: -100, max: 100, step: 1 },
       { kind: "slider", key: "contrast", label: "Contrast", min: -100, max: 100, step: 1 },
       { kind: "slider", key: "saturation", label: "Saturation", min: -100, max: 100, step: 1 },
+      { kind: "slider", key: "sharpen", label: "Sharpen", min: 0, max: 100, step: 1 },
+    ],
+  },
+
+  crop: {
+    type: "crop",
+    label: "Crop",
+    group: "transform",
+    blurb: "Drag a box on the image. Presets for social and OG sizes.",
+    defaults: { x: 0.1, y: 0.1, w: 0.8, h: 0.8, aspect: "free" },
+    controls: [],
+  },
+
+  resize: {
+    type: "resize",
+    label: "Resize",
+    group: "transform",
+    blurb: "Scale up or down with Lanczos resampling.",
+    defaults: { mode: "percent", percent: 100, width: 1200, height: 800, lockAspect: true },
+    controls: [
+      {
+        kind: "select",
+        key: "mode",
+        label: "Mode",
+        options: [
+          { value: "percent", label: "Percent" },
+          { value: "pixels", label: "Pixels" },
+        ],
+      },
+      { kind: "slider", key: "percent", label: "Scale", min: 10, max: 400, step: 5, unit: "%" },
+    ],
+  },
+
+  orient: {
+    type: "orient",
+    label: "Rotate + Flip",
+    group: "transform",
+    blurb: "Rotate in quarter turns, mirror horizontally or vertically.",
+    defaults: { angle: 0, flipH: false, flipV: false },
+    controls: [
+      {
+        kind: "select",
+        key: "angle",
+        label: "Rotate",
+        options: [
+          { value: "0", label: "0°" },
+          { value: "90", label: "90°" },
+          { value: "180", label: "180°" },
+          { value: "270", label: "270°" },
+        ],
+      },
+      { kind: "toggle", key: "flipH", label: "Flip horizontal" },
+      { kind: "toggle", key: "flipV", label: "Flip vertical" },
     ],
   },
 };
+
+/** Crop presets. "OG" is the 1.91:1 ratio link previews use. */
+export const CROP_PRESETS: { id: string; label: string; ratio: number | null }[] = [
+  { id: "free", label: "Free", ratio: null },
+  { id: "1:1", label: "1:1", ratio: 1 },
+  { id: "4:5", label: "4:5", ratio: 4 / 5 },
+  { id: "16:9", label: "16:9", ratio: 16 / 9 },
+  { id: "og", label: "OG", ratio: 1200 / 630 },
+];
 
 /** Rail order. Also the order ops land in the stack when clicked top-to-bottom. */
 export const OP_ORDER: string[] = [
@@ -189,6 +251,9 @@ export const OP_ORDER: string[] = [
   "color-swap",
   "duotone",
   "colorblind",
+  "crop",
+  "resize",
+  "orient",
   "adjust",
 ];
 

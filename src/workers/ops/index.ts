@@ -5,8 +5,11 @@ import { bgReplace } from "./bgReplace";
 import { colorblind } from "./colorblind";
 import { colorDelete } from "./colorDelete";
 import { colorSwap } from "./colorSwap";
+import { crop } from "./crop";
 import { cutoutStyle } from "./cutoutStyle";
 import { duotone } from "./duotone";
+import { orient } from "./orient";
+import { resize } from "./resize";
 
 /**
  * Worker-side op implementations, keyed to OP_META in src/lib/ops/registry.ts.
@@ -25,5 +28,8 @@ export const APPLY: Record<string, ApplyFn> = {
   "color-swap": colorSwap,
   duotone,
   colorblind,
+  crop,
+  resize,
+  orient,
   adjust,
 };

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { hasWebGPU } from "@/lib/gpu";
-import { metaFor } from "@/lib/ops/registry";
+import { CROP_PRESETS, metaFor } from "@/lib/ops/registry";
 import type { Control, Op } from "@/lib/ops/types";
 import { pipeline } from "@/lib/pipeline";
 import { useEditor } from "@/stores/editorStore";
@@ -21,6 +21,45 @@ function BgRemoveNote() {
       This browser has no WebGPU, so a cutout takes around 25 seconds. It still works —
       it's just slow. Everything else here stays instant.
     </p>
+  );
+}
+
+/** Crop has no generic controls — the box is dragged on the canvas. Presets snap it to
+ * a ratio and centre it, which is the common case (square avatar, OG card). */
+function CropControls({ op }: { op: Op }) {
+  const updateParams = useEditor((s) => s.updateParams);
+  const active = String(op.params.aspect ?? "free");
+
+  function apply(id: string, ratio: number | null) {
+    if (!ratio) {
+      updateParams(op.id, { aspect: id, ratio: 0 });
+      return;
+    }
+    // Store the ratio for the drag constraint, and snap to the largest centred box
+    // of that ratio right away so the preset does something visible on click.
+    updateParams(op.id, { aspect: id, ratio, x: 0, y: 0, w: 1, h: 1 });
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-[11px] text-text-muted">Aspect</span>
+      <div className="flex flex-wrap gap-1">
+        {CROP_PRESETS.map((p) => (
+          <button
+            key={p.id}
+            type="button"
+            onClick={() => apply(p.id, p.ratio)}
+            className={`btn btn-sm ${active === p.id ? "btn-primary" : ""}`}
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+      <p className="text-[10px] text-text-muted">
+        Drag a box on the image. The crop lifts while this tool is selected so you can
+        see the whole frame.
+      </p>
+    </div>
   );
 }
 
@@ -172,9 +211,12 @@ export default function OpControls() {
       </div>
       <div className="flex flex-col gap-3">
         {op.type === "bg-remove" && <BgRemoveNote />}
-        {meta.controls.map((c) => (
-          <ControlRow key={c.key} op={op} control={c} />
-        ))}
+        {op.type === "crop" && <CropControls op={op} />}
+        {meta.controls
+          .filter((c) => !(op.type === "resize" && c.key === "percent" && op.params.mode !== "percent"))
+          .map((c) => (
+            <ControlRow key={c.key} op={op} control={c} />
+          ))}
       </div>
     </div>
   );
