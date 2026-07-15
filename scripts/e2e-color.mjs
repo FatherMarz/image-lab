@@ -76,12 +76,20 @@ await clickCanvas(page, 0.25, 0.25);
 const body = await page.textContent("body");
 check("picker reads the exact hex under the cursor", body.includes("#dc2626"), "expected #dc2626");
 check("picker reports RGB", body.includes("rgb(220, 38, 38)"));
-check("picker reports WCAG contrast", /on white/.test(body) && /on black/.test(body));
+// Assert the ratio and grade actually render, not the label wording — the previous
+// /on white/ match passed on the label alone even if the number never arrived.
+check(
+  "picker reports WCAG contrast",
+  /white\s+\d+\.\d\s+(AA|AA·lg|fail)/.test(body) &&
+    /black\s+\d+\.\d\s+(AA|AA·lg|fail)/.test(body),
+);
 
 // --- palette ------------------------------------------------------------
 await page.selectOption("select", "5").catch(() => {});
 await page.click('button:has-text("Extract palette")');
-await page.waitForSelector('button:has-text("Copy as Hex")', { timeout: 30000 });
+// "Re-extract" only appears once swatches exist — the format buttons now render up
+// front (disabled), so waiting on one of those would no longer prove extraction ran.
+await page.waitForSelector('button:has-text("Re-extract")', { timeout: 30000 });
 const swatchTitles = await page.$$eval('div.tile button[title*="#"]', (els) =>
   els.map((e) => e.getAttribute("title")),
 );
@@ -109,7 +117,7 @@ for (const expected of ["#dc2626", "#2563eb", "#facc15", "#00b140"]) {
 const greenBefore = await pixel(page, 0.75, 0.75);
 check("green field starts opaque", greenBefore[3] === 255, `alpha ${greenBefore[3]}`);
 
-await page.click('button:has-text("Delete Colour")');
+await page.click('[data-tool="color-delete"]');
 await page.waitForTimeout(400);
 const greenGone = await pixel(page, 0.75, 0.75);
 check(
@@ -121,7 +129,7 @@ const redKept = await pixel(page, 0.25, 0.25);
 check("delete leaves other colours alone", redKept[3] === 255 && near(redKept[0], 220));
 
 // --- swap colour --------------------------------------------------------
-await page.click('button:has-text("Swap Colour")');
+await page.click('[data-tool="color-swap"]');
 await page.waitForTimeout(400);
 const swapped = await pixel(page, 0.25, 0.25);
 check(

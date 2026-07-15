@@ -12,7 +12,7 @@ export default function StackPanel() {
 
   return (
     <div>
-      <div className="mb-2 flex items-center justify-between">
+      <div className="mb-2 flex h-6 items-center justify-between">
         <div className="stamp">Stack</div>
         {ops.length > 0 && (
           <button type="button" className="btn btn-sm" onClick={clearStack}>
@@ -21,6 +21,10 @@ export default function StackPanel() {
         )}
       </div>
 
+      {/* Fixed height, self-scrolling. This region is pinned above nothing — it steals
+          its height from the tool controls — so the reserve has to be constant. A
+          max-height still shrank the rail by a row per op until it hit the cap. */}
+      <div className="h-32 overflow-y-auto">
       {ops.length === 0 ? (
         <p className="text-[11px] text-text-muted">
           Pick a tool. Edits stack in order and stay editable.
@@ -80,6 +84,7 @@ export default function StackPanel() {
           ))}
         </ol>
       )}
+      </div>
     </div>
   );
 }

@@ -86,10 +86,12 @@ export default function ExportBar() {
   const vector = VECTOR.includes(format);
 
   return (
-    <div className="tile flex flex-col gap-3 p-3">
-      <div className="stamp">Export</div>
+    // Every row renders in every state, with a reserved note line. Showing and hiding
+    // the quality slider per format moved the Download button under the cursor.
+    <div className="tile flex flex-col gap-2 p-3">
+      <div className="stamp h-4">Export</div>
 
-      <div className="flex flex-wrap gap-1">
+      <div className="grid grid-cols-4 gap-1">
         {formats.map((f) => (
           <button
             key={f}
@@ -102,45 +104,39 @@ export default function ExportBar() {
         ))}
       </div>
 
-      {lossy && (
-        <label className="block">
-          <div className="mb-1.5 flex items-center justify-between text-[11px]">
-            <span className="text-text-muted">{vector ? "Colours" : "Quality"}</span>
-            <span className="display">
-              {vector ? Math.max(2, Math.round((quality / 100) * 32)) : quality}
-            </span>
-          </div>
-          <input
-            type="range"
-            min={10}
-            max={100}
-            step={1}
-            value={quality}
-            onChange={(e) => setQuality(Number(e.target.value))}
-          />
-        </label>
-      )}
-
-      {vector && (
-        <p className="text-[11px] text-text-muted">
-          Traced to vector paths. Clean on flat art and logos, messy on photographs.
-        </p>
-      )}
-
-      {!HAS_ALPHA.includes(format) && (
-        <p className="text-[11px] text-accent">
-          {FORMAT_LABELS[format]} has no transparency — cutouts flatten onto white.
-        </p>
-      )}
-
-      {!vector && (
-        <div className="flex items-center justify-between text-[11px] text-text-muted">
-          <span>Estimated</span>
-          <span className="display text-text">
-            {estimate ? `~${bytes(estimate)}` : "—"}
+      <label className="block">
+        <div className="mb-1.5 flex items-center justify-between text-[11px]">
+          <span className="text-text-muted">{vector ? "Colours" : "Quality"}</span>
+          <span className="display">
+            {!lossy ? "lossless" : vector ? Math.max(2, Math.round((quality / 100) * 32)) : quality}
           </span>
         </div>
-      )}
+        <input
+          type="range"
+          min={10}
+          max={100}
+          step={1}
+          value={quality}
+          disabled={!lossy}
+          onChange={(e) => setQuality(Number(e.target.value))}
+          className="disabled:opacity-40"
+        />
+      </label>
+
+      <div className="flex items-center justify-between text-[11px] text-text-muted">
+        <span>Estimated</span>
+        <span className="display text-text">
+          {vector ? "—" : estimate ? `~${bytes(estimate)}` : "—"}
+        </span>
+      </div>
+
+      <p className="h-6 text-[10px] leading-tight text-accent">
+        {vector
+          ? "Traced to paths. Clean on flat art, messy on photos."
+          : !HAS_ALPHA.includes(format)
+            ? `${FORMAT_LABELS[format]} has no transparency — cutouts flatten onto white.`
+            : ""}
+      </p>
 
       <button
         type="button"

@@ -31,19 +31,36 @@ export default function App() {
       </header>
 
       {source ? (
+        // Each rail pins its fixed sections and scrolls only the variable middle, so
+        // selecting a tool or picking a colour never shifts anything else.
         <main className="flex flex-1 overflow-hidden">
-          <aside className="flex w-64 shrink-0 flex-col gap-4 overflow-y-auto border-r border-border p-3">
-            <ToolRail />
-            <OpControls />
-            <StackPanel />
+          {/* The tool list scrolls together with its controls: the controls change
+              height per tool, and pinning the list above them starved them of room.
+              Nothing below them moves because the stack is pinned. */}
+          <aside className="flex w-64 shrink-0 flex-col border-r border-border">
+            <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-3">
+              <ToolRail />
+              <OpControls />
+            </div>
+            <div className="shrink-0 border-t border-border p-3">
+              <StackPanel />
+            </div>
           </aside>
+
           <Viewport />
-          <aside className="flex w-64 shrink-0 flex-col gap-4 overflow-y-auto border-l border-border p-3">
-            <ColorPanel />
-            <PalettePanel />
-            <MetaPanel />
-            <div className="mt-auto flex flex-col gap-4">
+
+          {/* One natural scroll column, ordered by the actual loop: pick a colour, pull
+              a palette, export. Those three fit above the fold at laptop height. The
+              passive EXIF readout and the batch workflow sit below it — reachable, and
+              nothing anyone needs mid-edit. Pinning export to the bottom instead left
+              the panels above it squeezed into 411px of a 586px stack, which sliced
+              tiles through the middle and hid Metadata entirely. */}
+          <aside className="w-64 shrink-0 overflow-y-auto border-l border-border">
+            <div className="flex flex-col gap-4 p-3">
+              <ColorPanel />
+              <PalettePanel />
               <ExportBar />
+              <MetaPanel />
               <BatchPanel />
             </div>
           </aside>

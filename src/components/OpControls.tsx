@@ -63,6 +63,40 @@ function CropControls({ op }: { op: Op }) {
   );
 }
 
+/** One-tap multipliers, mirroring the 1x-4x buttons the old Python tool had. Hunting
+ * for "200%" on a slider is not how anyone thinks about upscaling. */
+function ResizePresets({ op }: { op: Op }) {
+  const updateParams = useEditor((s) => s.updateParams);
+  const source = useEditor((s) => s.source);
+  if (op.params.mode !== "percent") return null;
+
+  const pct = Number(op.params.percent);
+  return (
+    <div>
+      <div className="mb-1.5 flex items-center justify-between text-[11px]">
+        <span className="text-text-muted">Upscale</span>
+        {source && (
+          <span className="display text-[10px]">
+            {Math.round((source.width * pct) / 100)}×{Math.round((source.height * pct) / 100)}
+          </span>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-1">
+        {[100, 200, 300, 400].map((v) => (
+          <button
+            key={v}
+            type="button"
+            onClick={() => updateParams(op.id, { percent: v })}
+            className={`btn btn-sm ${pct === v ? "btn-primary" : ""}`}
+          >
+            {v / 100}×
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function RedactControls({ op }: { op: Op }) {
   const updateParams = useEditor((s) => s.updateParams);
   let count = 0;
@@ -224,7 +258,9 @@ export default function OpControls() {
   const meta = metaFor(op.type);
 
   return (
-    <div className="tile rise p-3">
+    // No entrance animation: this panel swaps on every tool change, and something
+    // sliding in each time reads as the layout moving.
+    <div className="tile p-3">
       <div className="mb-3 flex items-center justify-between">
         <span className="display text-xs">{meta.label}</span>
         <button
@@ -238,6 +274,7 @@ export default function OpControls() {
       <div className="flex flex-col gap-3">
         {op.type === "bg-remove" && <BgRemoveNote />}
         {op.type === "crop" && <CropControls op={op} />}
+        {op.type === "resize" && <ResizePresets op={op} />}
         {op.type === "redact" && <RedactControls op={op} />}
         {meta.controls
           .filter((c) => !(op.type === "resize" && c.key === "percent" && op.params.mode !== "percent"))

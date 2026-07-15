@@ -57,14 +57,18 @@ export default function PalettePanel() {
     }
   }
 
+  // Every row below renders in every state. Mounting these conditionally made the
+  // whole rail jump the moment a palette appeared.
+  const cells: (Swatch | null)[] = swatches ?? Array.from({ length: count }, () => null);
+
   return (
     <div className="tile p-3">
-      <div className="mb-2 flex items-center justify-between">
+      <div className="mb-2 flex h-6 items-center justify-between">
         <span className="stamp">Palette</span>
         <select
           value={count}
           onChange={(e) => setCount(Number(e.target.value))}
-          className="border border-border bg-surface px-1 py-0.5 text-[10px] text-text"
+          className="h-6 border border-border bg-surface px-1 text-[10px] text-text"
         >
           {[3, 4, 5, 6, 8, 10].map((n) => (
             <option key={n} value={n}>
@@ -74,50 +78,63 @@ export default function PalettePanel() {
         </select>
       </div>
 
-      <button type="button" className="btn btn-sm w-full" onClick={extract} disabled={busy}>
+      {/* Equal columns via grid 1fr — swatch width carries no meaning, and sizing by
+          share made narrow colours unclickable and the strip impossible to scan. */}
+      <div
+        className="mb-2 grid h-8 gap-px border border-border bg-border"
+        style={{ gridTemplateColumns: `repeat(${cells.length}, minmax(0, 1fr))` }}
+      >
+        {cells.map((s, i) =>
+          s ? (
+            <button
+              key={`${s.hex}-${i}`}
+              type="button"
+              title={`${s.hex} · ${(s.share * 100).toFixed(0)}% of the image`}
+              onClick={() => pickColor(s.hex)}
+              style={{ backgroundColor: s.hex }}
+            />
+          ) : (
+            <div key={i} className="bg-surface/60" />
+          ),
+        )}
+      </div>
+
+      <button
+        type="button"
+        className="btn btn-sm mb-2 w-full"
+        onClick={extract}
+        disabled={busy || !source}
+      >
         {busy ? "Reading…" : swatches ? "Re-extract" : "Extract palette"}
       </button>
 
-      {swatches && swatches.length > 0 && (
-        <>
-          <div className="mt-2 flex h-8 w-full overflow-hidden border border-border">
-            {swatches.map((s) => (
-              <button
-                key={s.hex}
-                type="button"
-                title={`${s.hex} · ${(s.share * 100).toFixed(0)}%`}
-                onClick={() => pickColor(s.hex)}
-                style={{ backgroundColor: s.hex, flexGrow: s.share }}
-              />
-            ))}
-          </div>
-
-          <div className="mt-2 flex flex-wrap gap-1">
-            {FORMATS.map((f) => (
-              <button
-                key={f.id}
-                type="button"
-                onClick={() => setFormat(f.id)}
-                className={`btn btn-sm ${format === f.id ? "btn-primary" : ""}`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-
+      <div className="mb-1 grid grid-cols-4 gap-1">
+        {FORMATS.map((f) => (
           <button
+            key={f.id}
             type="button"
-            className="btn btn-sm mt-1 w-full"
-            onClick={() => {
-              navigator.clipboard.writeText(serialize(swatches, format));
-              setCopied(true);
-              setTimeout(() => setCopied(false), 900);
-            }}
+            onClick={() => setFormat(f.id)}
+            disabled={!swatches}
+            className={`btn btn-sm ${format === f.id && swatches ? "btn-primary" : ""}`}
           >
-            {copied ? "Copied" : `Copy as ${FORMATS.find((f) => f.id === format)!.label}`}
+            {f.label}
           </button>
-        </>
-      )}
+        ))}
+      </div>
+
+      <button
+        type="button"
+        className="btn btn-sm w-full"
+        disabled={!swatches}
+        onClick={() => {
+          if (!swatches) return;
+          navigator.clipboard.writeText(serialize(swatches, format));
+          setCopied(true);
+          setTimeout(() => setCopied(false), 900);
+        }}
+      >
+        {copied ? "Copied" : "Copy"}
+      </button>
     </div>
   );
 }

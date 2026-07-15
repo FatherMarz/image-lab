@@ -67,7 +67,7 @@ await page.waitForSelector("canvas");
 await page.waitForTimeout(400);
 
 // --- rotate -------------------------------------------------------------
-await page.click('button:has-text("Rotate + Flip")');
+await page.click('[data-tool="orient"]');
 await page.waitForTimeout(300);
 await page.selectOption("select", "90");
 await page.waitForTimeout(600);
@@ -78,7 +78,7 @@ await page.click('li:has-text("Rotate + Flip") button[title="Remove"]');
 await page.waitForTimeout(400);
 
 // --- resize -------------------------------------------------------------
-await page.click('button:has-text("Resize")');
+await page.click('[data-tool="resize"]');
 await page.waitForTimeout(300);
 await setRange(page, "Scale", 200);
 out = await exportPng(page);
@@ -90,11 +90,11 @@ await setRange(page, "Scale", 50);
 out = await exportPng(page);
 size = pngSize(out);
 check("resize 50% halves the exported image", size.w === 200 && size.h === 150, `${size.w}x${size.h}`);
-await page.click('li:has-text("Resize") button[title="Remove"]');
+await page.click('li:has-text("Resize + Upscale") button[title="Remove"]');
 await page.waitForTimeout(400);
 
 // --- crop ---------------------------------------------------------------
-await page.click('button:has-text("Crop")');
+await page.click('[data-tool="crop"]');
 await page.waitForTimeout(600);
 
 // Selecting crop must bypass it so the full frame stays visible to drag on.
@@ -128,7 +128,7 @@ check(
 );
 
 // --- stacking -----------------------------------------------------------
-await page.click('button:has-text("Resize")');
+await page.click('[data-tool="resize"]');
 await page.waitForTimeout(300);
 await setRange(page, "Scale", 200);
 out = await exportPng(page);

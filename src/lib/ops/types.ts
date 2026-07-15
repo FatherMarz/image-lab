@@ -33,6 +33,13 @@ export type Control =
 export interface OpMeta {
   type: string;
   label: string;
+  /**
+   * Name for the two-column tool rail, where ~13 characters fit. The group heading
+   * above the button carries the noun, so "Delete" under COLOUR is unambiguous.
+   * Falls back to `label`. Everywhere else — the stack, the controls header — uses
+   * the full label, because there the tool has no heading to lean on.
+   */
+  short?: string;
   group: OpGroup;
   blurb: string;
   defaults: OpParams;

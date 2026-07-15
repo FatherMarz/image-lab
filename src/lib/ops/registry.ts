@@ -9,6 +9,7 @@ export const OP_META: Record<string, OpMeta> = {
   "bg-remove": {
     type: "bg-remove",
     label: "Remove BG",
+    short: "Remove",
     group: "bg",
     blurb: "Cut the subject out. First use downloads the model.",
     defaults: { model: "general", threshold: 50, feather: 0 },
@@ -30,6 +31,7 @@ export const OP_META: Record<string, OpMeta> = {
   "cutout-style": {
     type: "cutout-style",
     label: "Outline + Shadow",
+    short: "Outline",
     group: "bg",
     blurb: "Sticker outline and drop shadow around the cutout.",
     defaults: {
@@ -55,6 +57,7 @@ export const OP_META: Record<string, OpMeta> = {
   "bg-replace": {
     type: "bg-replace",
     label: "Replace BG",
+    short: "Replace",
     group: "bg",
     blurb: "Put a colour, gradient or image behind the cutout.",
     defaults: {
@@ -86,6 +89,7 @@ export const OP_META: Record<string, OpMeta> = {
   "color-delete": {
     type: "color-delete",
     label: "Delete Colour",
+    short: "Delete",
     group: "color",
     blurb: "Make one colour transparent. Pick it off the image with the dropper.",
     defaults: {
@@ -105,6 +109,7 @@ export const OP_META: Record<string, OpMeta> = {
   "color-swap": {
     type: "color-swap",
     label: "Swap Colour",
+    short: "Swap",
     group: "color",
     blurb: "Recolour one colour into another, keeping shading intact.",
     defaults: {
@@ -149,6 +154,7 @@ export const OP_META: Record<string, OpMeta> = {
   colorblind: {
     type: "colorblind",
     label: "Colourblind Sim",
+    short: "Colourblind",
     group: "color",
     blurb: "Preview the image as a dichromat sees it.",
     defaults: { type: "deuteranopia" },
@@ -183,6 +189,7 @@ export const OP_META: Record<string, OpMeta> = {
   frame: {
     type: "frame",
     label: "Screenshot Polish",
+    short: "Polish",
     group: "transform",
     blurb: "Padding, backdrop, rounded corners and a drop shadow.",
     defaults: {
@@ -268,9 +275,14 @@ export const OP_META: Record<string, OpMeta> = {
 
   resize: {
     type: "resize",
-    label: "Resize",
+    // Named for both jobs on purpose: "Resize" alone made the upscale impossible to
+    // find for someone looking for an upscaler.
+    label: "Resize + Upscale",
+    // "Upscale" over "Resize" in the rail: scaling down is the obvious half, and the
+    // 1x-4x buttons make it plain once you're in. Upscaling is what you'd hunt for.
+    short: "Upscale",
     group: "transform",
-    blurb: "Scale up or down with Lanczos resampling.",
+    blurb: "Scale up or down with Lanczos resampling. 2x / 3x / 4x presets.",
     defaults: { mode: "percent", percent: 100, width: 1200, height: 800, lockAspect: true },
     controls: [
       {
@@ -289,6 +301,7 @@ export const OP_META: Record<string, OpMeta> = {
   orient: {
     type: "orient",
     label: "Rotate + Flip",
+    short: "Rotate",
     group: "transform",
     blurb: "Rotate in quarter turns, mirror horizontally or vertically.",
     defaults: { angle: 0, flipH: false, flipV: false },

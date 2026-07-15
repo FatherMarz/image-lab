@@ -13,7 +13,8 @@
     "e2e:transform": "node scripts/e2e-transform.mjs",
     "e2e:privacy": "node scripts/e2e-privacy.mjs",
     "fixtures": "node scripts/make-fixtures.mjs",
-    "e2e:batch": "node scripts/e2e-batch.mjs"
+    "e2e:batch": "node scripts/e2e-batch.mjs",
+    "e2e:layout": "node scripts/e2e-layout.mjs"
   },
   "dependencies": {
     "@huggingface/transformers": "^4.2.0",

@@ -51,10 +51,7 @@ export default function BatchPanel() {
 
   return (
     <div className="tile p-3">
-      <div className="stamp mb-2">Batch</div>
-      <p className="mb-2 text-[10px] text-text-muted">
-        Apply this exact stack to many images, or cut an icon set from this one.
-      </p>
+      <div className="stamp mb-2 h-4">Batch</div>
 
       <div className="flex flex-col gap-1">
         <button
@@ -70,7 +67,10 @@ export default function BatchPanel() {
         </button>
       </div>
 
-      {status && <p className="mt-2 text-[10px] text-accent">{status}</p>}
+      {/* Reserved line — a status that appears mid-run would shove the panel. */}
+      <p className="mt-2 h-6 overflow-hidden text-[10px] leading-tight text-accent">
+        {status ?? ""}
+      </p>
 
       <input
         ref={input}

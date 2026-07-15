@@ -50,10 +50,12 @@ await page.waitForTimeout(800);
 const body = await page.textContent("body");
 check("surfaces the planted GPS coordinates", /53\.5461/.test(body) && /113\.4938/.test(body));
 check("names the camera", /Canon EOS R5/.test(body));
-check("says export drops metadata", /carries no metadata/i.test(body));
+// The panel folds its warnings into one reserved line, so a GPS file states the drop
+// promise as part of the GPS warning rather than on a line of its own.
+check("promises the export drops the metadata", /export drops/i.test(body));
 
 // --- redact -------------------------------------------------------------
-await page.click('button:has-text("Redact")');
+await page.click('[data-tool="redact"]');
 await page.waitForTimeout(400);
 const before = await pixel(page, 0.5, 0.3);
 
@@ -87,7 +89,7 @@ await page.click('li:has-text("Redact") button[title="Remove"]');
 await page.waitForTimeout(400);
 
 // --- dither -------------------------------------------------------------
-await page.click('button:has-text("Dither")');
+await page.click('[data-tool="dither"]');
 await page.waitForTimeout(900);
 const levels = await page.evaluate(() => {
   const c = document.querySelector("canvas");

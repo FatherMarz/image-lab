@@ -43,7 +43,7 @@ await page.waitForTimeout(500);
 
 // Put a real op on the stack so we can prove the batch applies it rather than just
 // re-encoding the inputs.
-await page.click('button:has-text("Rotate + Flip")');
+await page.click('[data-tool="orient"]');
 await page.waitForTimeout(300);
 await page.selectOption("select", "90");
 await page.waitForTimeout(500);

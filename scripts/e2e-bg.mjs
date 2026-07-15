@@ -72,7 +72,7 @@ const BACKDROP = [0.06, 0.1];
 const cornerBefore = await pixel(page, ...BACKDROP);
 check("backdrop starts opaque", cornerBefore[3] === 255, `alpha ${cornerBefore[3]}`);
 
-await page.click('button:has-text("Remove BG")');
+await page.click('[data-tool="bg-remove"]');
 console.log("  ..  waiting for model (first run downloads 44-88MB)");
 
 // Wait for the render to settle rather than a fixed timeout.
@@ -100,7 +100,7 @@ const backend = logs.find((l) => l.includes("[image-lab]"));
 console.log(`  ..  ${backend ?? "no backend log"}`);
 
 // Replace the backdrop and confirm it composites behind the cutout.
-await page.click('button:has-text("Replace BG")');
+await page.click('[data-tool="bg-replace"]');
 await page.selectOption("select", { label: "Solid colour" });
 await page.waitForTimeout(1500);
 const replaced = await pixel(page, ...BACKDROP);
