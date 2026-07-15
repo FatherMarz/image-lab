@@ -9,17 +9,40 @@ Live at **[images.modul4r.com](https://images.modul4r.com)**. A [modul4r](https:
 Replaces `bg-remover`, a local Flask app that needed Python and a `pip install` to do
 one of these jobs.
 
+## Tools
+
+| Group | Tools |
+| --- | --- |
+| Background | Remove BG · Outline + Shadow · Replace BG (colour / gradient / image) |
+| Colour | Delete Colour (chroma key) · Swap Colour · Duotone · Dither · Colourblind Sim |
+| Transform | Crop (+ social/OG presets) · Resize (Lanczos) · Rotate + Flip · Adjust · Screenshot Polish |
+| Meta | Redact |
+| Panels | Colour picker (HEX/RGB/HSL + WCAG contrast) · Palette extract + export · Metadata · Batch + icon set |
+
+Export: PNG, JPG, WebP, AVIF (where the browser can encode it), SVG (traced).
+
 ## Develop
 
 ```bash
 npm install
-npm run dev            # http://localhost:5176
+npm run dev              # http://localhost:5176
 npm run build
+npm run fixtures         # regenerate the derived EXIF fixture
 
-npm run e2e            # pipeline: stack, params, toggle, compare, export
-npm run e2e:bg         # background removal on the WASM path (~25s/cutout)
-HEADED=1 npm run e2e:bg  # background removal on the WebGPU path (~0.6s/cutout)
+npm run e2e              # pipeline: stack, params, toggle, compare, export
+npm run e2e:color        # picker, palette, delete, swap
+npm run e2e:transform    # crop/resize/rotate, asserted on exported PNG headers
+npm run e2e:privacy      # EXIF, redaction, dither, SVG
+npm run e2e:batch        # batch + icon set, asserted on zip contents
+npm run e2e:bg           # background removal, WASM path (~25s/cutout)
+HEADED=1 npm run e2e:bg  # background removal, WebGPU path (~0.6s/cutout)
 ```
+
+Headless Chromium has no GPU adapter, so only `HEADED=1` covers WebGPU. Both paths
+ship, so both are worth running.
+
+Vite's dep optimizer reloads the page the first time a new dependency is imported,
+which can fail an e2e mid-run. Re-run it; it's a dev-server artifact, not the app.
 
 ## How it works
 
