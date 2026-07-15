@@ -6,9 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "e2e": "node scripts/e2e.mjs",
+    "e2e:bg": "node scripts/e2e-bg.mjs"
   },
   "dependencies": {
+    "@huggingface/transformers": "^4.2.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zustand": "^5.0.14"
@@ -23,5 +26,6 @@
     "tailwindcss": "^3.4.15",
     "typescript": "^5.6.3",
     "vite": "^5.4.11"
-  }
+  },
+  "license": "AGPL-3.0-only"
 }

@@ -1,0 +1,65 @@
+<!doctype html>
+<!--
+  Throwaway capability probe (dev only, not part of the app).
+  Answers which (model, dtype, device) combos actually run, since the model cards
+  don't say and fp16 turned out to blow up on the WASM backend.
+    npm run dev  ->  node scripts/probe.mjs
+-->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>image-lab model probe</title>
+  </head>
+  <body>
+    <pre id="out">probing…</pre>
+    <script type="module">
+      import { pipeline, env, RawImage } from "@huggingface/transformers";
+      env.allowLocalModels = false;
+
+      const COMBOS = [
+        { repo: "onnx-community/ISNet-ONNX", dtype: "fp16", device: "webgpu", note: "88MB, general?" },
+        { repo: "onnx-community/ISNet-ONNX", dtype: "int8", device: "wasm", note: "44MB, general?" },
+        { repo: "onnx-community/BEN2-ONNX", dtype: "fp16", device: "webgpu", note: "219MB, MIT, general" },
+      ];
+
+      const results = [];
+      const img = await RawImage.fromURL("/scripts/fixtures/photo.jpg");
+      results.push({ webgpuAdapter: Boolean(navigator.gpu && (await navigator.gpu.requestAdapter())) });
+
+      for (const combo of COMBOS) {
+        const row = { ...combo };
+        const t0 = performance.now();
+        try {
+          const seg = await pipeline("background-removal", combo.repo, {
+            dtype: combo.dtype,
+            device: combo.device,
+          });
+          row.loadMs = Math.round(performance.now() - t0);
+          const t1 = performance.now();
+          const out = await seg(img);
+          row.inferMs = Math.round(performance.now() - t1);
+
+          const r = Array.isArray(out) ? out[0] : out;
+          let mn = 255, mx = 0, sum = 0;
+          const n = r.width * r.height;
+          for (let i = 0, p = 3; i < n; i++, p += 4) {
+            const v = r.data[p];
+            if (v < mn) mn = v;
+            if (v > mx) mx = v;
+            sum += v;
+          }
+          row.ok = true;
+          row.mask = { ch: r.channels, min: mn, max: mx, mean: +(sum / n).toFixed(1) };
+        } catch (e) {
+          row.ok = false;
+          row.error = String(e).slice(0, 700);
+        }
+        results.push(row);
+        document.getElementById("out").textContent = JSON.stringify(results, null, 2);
+      }
+
+      window.__probeDone = true;
+      window.__probeResults = results;
+    </script>
+  </body>
+</html>

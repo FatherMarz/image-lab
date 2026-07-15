@@ -4,6 +4,9 @@ import type { ExportFormat, Request, Response } from "./protocol";
 type Loaded = Extract<Response, { kind: "loaded" }>;
 type Rendered = Extract<Response, { kind: "rendered" }>;
 type Exported = Extract<Response, { kind: "exported" }>;
+type Ack = Extract<Response, { kind: "ack" }>;
+
+export type Progress = { phase: string; loaded?: number; total?: number };
 
 type Pending = {
   resolve: (value: never) => void;
@@ -17,6 +20,7 @@ class PipelineClient {
   private worker: Worker;
   private seq = 0;
   private pending = new Map<number, Pending>();
+  private progressSubs = new Set<(p: Progress | null) => void>();
 
   constructor() {
     this.worker = new Worker(
@@ -25,12 +29,27 @@ class PipelineClient {
     );
     this.worker.onmessage = (e: MessageEvent<Response>) => {
       const msg = e.data;
-      const p = this.pending.get(msg.id);
-      if (!p) return;
+
+      // Progress is a side channel: it reports on an in-flight request without
+      // settling it, so it must not touch `pending`.
+      if (msg.kind === "progress") {
+        const p: Progress = { phase: msg.phase, loaded: msg.loaded, total: msg.total };
+        this.progressSubs.forEach((cb) => cb(p));
+        return;
+      }
+
+      const pending = this.pending.get(msg.id);
+      if (!pending) return;
       this.pending.delete(msg.id);
-      if (msg.kind === "error") p.reject(new Error(msg.message));
-      else p.resolve(msg as never);
+      if (this.pending.size === 0) this.progressSubs.forEach((cb) => cb(null));
+      if (msg.kind === "error") pending.reject(new Error(msg.message));
+      else pending.resolve(msg as never);
     };
+  }
+
+  onProgress(cb: (p: Progress | null) => void) {
+    this.progressSubs.add(cb);
+    return () => this.progressSubs.delete(cb);
   }
 
   private send<T>(
@@ -46,6 +65,10 @@ class PipelineClient {
 
   load(bitmap: ImageBitmap) {
     return this.send<Loaded>({ kind: "load", bitmap }, [bitmap]);
+  }
+
+  setAsset(assetId: string, bitmap: ImageBitmap) {
+    return this.send<Ack>({ kind: "asset", assetId, bitmap }, [bitmap]);
   }
 
   render(ops: Op[], maxDim: number) {

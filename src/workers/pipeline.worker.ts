@@ -3,6 +3,7 @@ import { metaFor } from "@/lib/ops/registry";
 import type { Op, OpContext } from "@/lib/ops/types";
 import type { Request, Response } from "@/lib/protocol";
 import { MAX_PIXELS, PREVIEW_MAX } from "@/lib/consts";
+import { setAsset } from "./assets";
 import { APPLY } from "./ops";
 
 type CacheEntry = { key: string; data: ImageData };
@@ -51,12 +52,15 @@ function baseFor(maxDim: number): ImageData {
   return data;
 }
 
-async function runPipeline(ops: Op[], maxDim: number): Promise<ImageData> {
+async function runPipeline(
+  ops: Op[],
+  maxDim: number,
+  requestId: number,
+): Promise<ImageData> {
   if (!source) throw new Error("No image loaded");
 
   const { w, h } = dimsFor(maxDim);
   const base = baseFor(maxDim);
-  const ctx: OpContext = { scale: w / source.width };
   const baseKey = `${w}x${h}`;
 
   // Disabled ops contribute nothing to the key, so toggling one off reuses the
@@ -94,6 +98,12 @@ async function runPipeline(ops: Op[], maxDim: number): Promise<ImageData> {
       const fn = APPLY[op.type];
       if (!fn) throw new Error(`No implementation for op: ${op.type}`);
       const params = { ...metaFor(op.type).defaults, ...op.params };
+      const ctx: OpContext = {
+        scale: w / source.width,
+        inputKey: i === 0 ? baseKey : keys[i - 1],
+        report: (phase, loaded, total) =>
+          post({ kind: "progress", id: requestId, phase, loaded, total }),
+      };
       current = await fn(ctx, current, params);
     }
     if (useCache) prefix[i] = { key: keys[i], data: current };
@@ -167,8 +177,14 @@ self.onmessage = async (e: MessageEvent<Request>) => {
         break;
       }
 
+      case "asset": {
+        setAsset(msg.assetId, msg.bitmap);
+        post({ kind: "ack", id: msg.id });
+        break;
+      }
+
       case "render": {
-        const data = await runPipeline(msg.ops, msg.maxDim);
+        const data = await runPipeline(msg.ops, msg.maxDim, msg.id);
         const bitmap = await createImageBitmap(data);
         post(
           { kind: "rendered", id: msg.id, bitmap, width: data.width, height: data.height },
@@ -178,7 +194,7 @@ self.onmessage = async (e: MessageEvent<Request>) => {
       }
 
       case "export": {
-        const data = await runPipeline(msg.ops, 0);
+        const data = await runPipeline(msg.ops, 0, msg.id);
         const blob = await encode(data, msg.format, msg.quality);
         post({
           kind: "exported",

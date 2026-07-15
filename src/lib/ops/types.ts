@@ -21,6 +21,8 @@ export type Control =
     }
   | { kind: "toggle"; key: string; label: string }
   | { kind: "color"; key: string; label: string }
+  /** Picks a side image; the param holds an assetId registered with the worker. */
+  | { kind: "image"; key: string; label: string }
   | {
       kind: "select";
       key: string;
@@ -46,6 +48,14 @@ export interface OpMeta {
 export interface OpContext {
   /** renderWidth / sourceWidth. 1 on export, <1 on preview. */
   scale: number;
+  /**
+   * Cumulative cache key of this op's INPUT. Ops holding expensive derived state
+   * (a segmentation mask, say) key that state on this so tweaking a cheap param
+   * like threshold reuses it instead of re-running inference.
+   */
+  inputKey: string;
+  /** Surface long-running work (model download, inference) to the UI. */
+  report: (phase: string, loaded?: number, total?: number) => void;
 }
 
 export type ApplyFn = (

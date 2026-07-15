@@ -1,6 +1,28 @@
+import { useEffect, useState } from "react";
+import { hasWebGPU } from "@/lib/gpu";
 import { metaFor } from "@/lib/ops/registry";
 import type { Control, Op } from "@/lib/ops/types";
+import { pipeline } from "@/lib/pipeline";
 import { useEditor } from "@/stores/editorStore";
+
+/**
+ * A cutout is ~0.6s on WebGPU and ~25s without it. Say so before someone starts,
+ * rather than letting them wonder whether the tab has hung.
+ */
+function BgRemoveNote() {
+  const [gpu, setGpu] = useState<boolean | null>(null);
+  useEffect(() => {
+    hasWebGPU().then(setGpu);
+  }, []);
+
+  if (gpu === null || gpu) return null;
+  return (
+    <p className="text-[11px] text-accent">
+      This browser has no WebGPU, so a cutout takes around 25 seconds. It still works —
+      it's just slow. Everything else here stays instant.
+    </p>
+  );
+}
 
 function ControlRow({ op, control }: { op: Op; control: Control }) {
   const updateParams = useEditor((s) => s.updateParams);
@@ -59,6 +81,32 @@ function ControlRow({ op, control }: { op: Op; control: Control }) {
         </label>
       );
 
+    case "image":
+      return (
+        <label className="block text-[11px]">
+          <span className="mb-1.5 block text-text-muted">{control.label}</span>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              const bitmap = await createImageBitmap(file, {
+                imageOrientation: "from-image",
+              });
+              // Timestamped so re-picking an image changes the param, which is what
+              // invalidates the pipeline's cache for this op.
+              const assetId = `${op.id}:${control.key}:${Date.now().toString(36)}`;
+              await pipeline.setAsset(assetId, bitmap);
+              updateParams(op.id, { [control.key]: assetId });
+              e.target.value = "";
+            }}
+            className="w-full text-[10px] text-text-muted file:mr-2 file:border file:border-border file:bg-surface file:px-2 file:py-1 file:text-[10px] file:text-text"
+          />
+          {value ? <span className="mt-1 block text-accent">Image loaded</span> : null}
+        </label>
+      );
+
     case "select":
       return (
         <label className="block text-[11px]">
@@ -101,6 +149,7 @@ export default function OpControls() {
         </button>
       </div>
       <div className="flex flex-col gap-3">
+        {op.type === "bg-remove" && <BgRemoveNote />}
         {meta.controls.map((c) => (
           <ControlRow key={c.key} op={op} control={c} />
         ))}

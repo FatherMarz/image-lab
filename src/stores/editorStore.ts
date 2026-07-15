@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { pipeline } from "@/lib/pipeline";
+import { pipeline, type Progress } from "@/lib/pipeline";
 import { PREVIEW_MAX } from "@/lib/consts";
 import { metaFor } from "@/lib/ops/registry";
 import type { Op, OpParams } from "@/lib/ops/types";
@@ -20,6 +20,7 @@ interface EditorState {
   ops: Op[];
   activeOpId: string | null;
   busy: boolean;
+  progress: Progress | null;
   error: string | null;
 
   loadFile: (file: File) => Promise<void>;
@@ -72,6 +73,7 @@ export const useEditor = create<EditorState>((set, get) => {
     ops: [],
     activeOpId: null,
     busy: false,
+    progress: null,
     error: null,
 
     async loadFile(file) {
@@ -180,6 +182,10 @@ export const useEditor = create<EditorState>((set, get) => {
     },
   };
 });
+
+// Progress arrives on a side channel (model download, inference) rather than as a
+// response, so it's piped into the store rather than awaited.
+pipeline.onProgress((p) => useEditor.setState({ progress: p }));
 
 /** Non-hook accessor for use outside React (matches the p2p store convention). */
 export const editor = {
