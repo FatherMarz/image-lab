@@ -18,9 +18,12 @@ export default function ExportBar() {
   const preview = useEditor((s) => s.preview);
   const ops = useEditor((s) => s.ops);
 
+  const format = useEditor((s) => s.exportFormat);
+  const quality = useEditor((s) => s.exportQuality);
+  const setFormat = useEditor((s) => s.setExportFormat);
+  const setQuality = useEditor((s) => s.setExportQuality);
+
   const [formats, setFormats] = useState<ExportFormat[]>(["image/png"]);
-  const [format, setFormat] = useState<ExportFormat>("image/png");
-  const [quality, setQuality] = useState(90);
   const [estimate, setEstimate] = useState<number | null>(null);
   const [exporting, setExporting] = useState(false);
 

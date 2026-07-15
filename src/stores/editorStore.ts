@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { pipeline, type Progress } from "@/lib/pipeline";
 import { PREVIEW_MAX } from "@/lib/consts";
 import { readExif, type ExifSummary } from "@/lib/exif";
+import type { ExportFormat } from "@/lib/protocol";
 import { metaFor } from "@/lib/ops/registry";
 import type { Op, OpParams } from "@/lib/ops/types";
 
@@ -30,6 +31,11 @@ interface EditorState {
   /** True while the crop op is selected and therefore bypassed in the preview. */
   cropEditing: boolean;
   exif: ExifSummary | null;
+  /** Export settings live here so batch and icon runs use the same choices. */
+  exportFormat: ExportFormat;
+  exportQuality: number;
+  setExportFormat: (f: ExportFormat) => void;
+  setExportQuality: (q: number) => void;
 
   loadFile: (file: File) => Promise<void>;
   setPickTarget: (t: { opId: string; key: string } | null) => void;
@@ -100,6 +106,15 @@ export const useEditor = create<EditorState>((set, get) => {
     pickTarget: null,
     cropEditing: false,
     exif: null,
+    exportFormat: "image/png",
+    exportQuality: 90,
+
+    setExportFormat(f) {
+      set({ exportFormat: f });
+    },
+    setExportQuality(q) {
+      set({ exportQuality: q });
+    },
 
     setPickTarget(t) {
       set({ pickTarget: t });

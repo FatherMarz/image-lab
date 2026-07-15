@@ -17,7 +17,9 @@ type Pending = {
 /** Plain Omit collapses a union into its shared keys; this keeps each variant intact. */
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
 
-class PipelineClient {
+/** Exported so batch runs can spin up their own worker instead of clobbering the
+ * source image the user is currently editing. */
+export class PipelineClient {
   private worker: Worker;
   private seq = 0;
   private pending = new Map<number, Pending>();
@@ -82,6 +84,10 @@ class PipelineClient {
 
   exportImage(ops: Op[], format: ExportFormat, quality: number) {
     return this.send<Exported>({ kind: "export", ops, format, quality });
+  }
+
+  dispose() {
+    this.worker.terminate();
   }
 }
 

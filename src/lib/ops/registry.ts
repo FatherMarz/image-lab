@@ -180,6 +180,42 @@ export const OP_META: Record<string, OpMeta> = {
     ],
   },
 
+  frame: {
+    type: "frame",
+    label: "Screenshot Polish",
+    group: "transform",
+    blurb: "Padding, backdrop, rounded corners and a drop shadow.",
+    defaults: {
+      padding: 8,
+      mode: "gradient",
+      color: "#7a8057",
+      color2: "#242721",
+      angle: 135,
+      radius: 4,
+      shadowOpacity: 35,
+      shadowBlur: 24,
+    },
+    controls: [
+      { kind: "slider", key: "padding", label: "Padding", min: 0, max: 30, step: 1, unit: "%" },
+      {
+        kind: "select",
+        key: "mode",
+        label: "Backdrop",
+        options: [
+          { value: "gradient", label: "Gradient" },
+          { value: "color", label: "Solid colour" },
+          { value: "none", label: "Transparent" },
+        ],
+      },
+      { kind: "color", key: "color", label: "Colour" },
+      { kind: "color", key: "color2", label: "Colour 2" },
+      { kind: "slider", key: "angle", label: "Angle", min: 0, max: 360, step: 5, unit: "°" },
+      { kind: "slider", key: "radius", label: "Corner radius", min: 0, max: 20, step: 1, unit: "%" },
+      { kind: "slider", key: "shadowOpacity", label: "Shadow", min: 0, max: 100, step: 1, unit: "%" },
+      { kind: "slider", key: "shadowBlur", label: "Shadow blur", min: 0, max: 60, step: 1, unit: "px" },
+    ],
+  },
+
   redact: {
     type: "redact",
     label: "Redact",
@@ -297,6 +333,7 @@ export const OP_ORDER: string[] = [
   "resize",
   "orient",
   "adjust",
+  "frame",
   "redact",
 ];
 

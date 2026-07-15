@@ -1,3 +1,4 @@
+import BatchPanel from "./components/BatchPanel";
 import ColorPanel from "./components/ColorPanel";
 import Dropzone from "./components/Dropzone";
 import ExportBar from "./components/ExportBar";
@@ -41,8 +42,9 @@ export default function App() {
             <ColorPanel />
             <PalettePanel />
             <MetaPanel />
-            <div className="mt-auto">
+            <div className="mt-auto flex flex-col gap-4">
               <ExportBar />
+              <BatchPanel />
             </div>
           </aside>
         </main>
