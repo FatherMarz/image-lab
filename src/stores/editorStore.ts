@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { pipeline, type Progress } from "@/lib/pipeline";
 import { PREVIEW_MAX } from "@/lib/consts";
+import { readExif, type ExifSummary } from "@/lib/exif";
 import { metaFor } from "@/lib/ops/registry";
 import type { Op, OpParams } from "@/lib/ops/types";
 
@@ -28,6 +29,7 @@ interface EditorState {
   pickTarget: { opId: string; key: string } | null;
   /** True while the crop op is selected and therefore bypassed in the preview. */
   cropEditing: boolean;
+  exif: ExifSummary | null;
 
   loadFile: (file: File) => Promise<void>;
   setPickTarget: (t: { opId: string; key: string } | null) => void;
@@ -97,6 +99,7 @@ export const useEditor = create<EditorState>((set, get) => {
     picked: null,
     pickTarget: null,
     cropEditing: false,
+    exif: null,
 
     setPickTarget(t) {
       set({ pickTarget: t });
@@ -116,10 +119,11 @@ export const useEditor = create<EditorState>((set, get) => {
       try {
         // from-image respects EXIF orientation — without it, phone photos load sideways.
         const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
-        const res = await pipeline.load(bitmap);
+        const [res, exif] = await Promise.all([pipeline.load(bitmap), readExif(file)]);
         get().original?.close();
         get().preview?.close();
         set({
+          exif,
           source: {
             name: file.name.replace(/\.[^.]+$/, ""),
             width: res.width,
@@ -215,6 +219,8 @@ export const useEditor = create<EditorState>((set, get) => {
         ops: [],
         activeOpId: null,
         error: null,
+        exif: null,
+        picked: null,
       });
     },
   };

@@ -19,6 +19,8 @@ export default function Viewport() {
   const updateParams = useEditor((s) => s.updateParams);
 
   const cropOp = cropEditing ? ops.find((o) => o.id === activeOpId) : undefined;
+  const active = ops.find((o) => o.id === activeOpId);
+  const redactOp = active?.type === "redact" && active.enabled ? active : undefined;
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [comparing, setComparing] = useState(false);
@@ -109,6 +111,28 @@ export default function Viewport() {
     };
   }
 
+  /** Commit the dragged box as another redaction region. */
+  function commitRedact(e: React.PointerEvent<HTMLCanvasElement>) {
+    if (!redactOp || !cropStart.current) return;
+    const p = norm(e);
+    const s = cropStart.current;
+    const x = Math.min(s.x, p.x);
+    const y = Math.min(s.y, p.y);
+    const w = Math.abs(p.x - s.x);
+    const h = Math.abs(p.y - s.y);
+    if (w < 0.01 || h < 0.01) return;
+
+    let regions: unknown[] = [];
+    try {
+      regions = JSON.parse(String(redactOp.params.regions || "[]"));
+    } catch {
+      regions = [];
+    }
+    updateParams(redactOp.id, {
+      regions: JSON.stringify([...regions, { x, y, w, h }]),
+    });
+  }
+
   function dragCrop(e: React.PointerEvent<HTMLCanvasElement>) {
     if (!cropOp || !cropStart.current) return;
     const p = norm(e);
@@ -172,21 +196,24 @@ export default function Viewport() {
             className="max-h-full max-w-full object-contain"
             style={{ cursor: comparing ? "ew-resize" : "crosshair" }}
             onClick={(e) => {
-              if (!comparing && !cropOp) sample(e);
+              if (!comparing && !cropOp && !redactOp) sample(e);
             }}
             onPointerDown={(e) => {
-              if (!comparing && !cropOp) return;
+              if (!comparing && !cropOp && !redactOp) return;
               setDragging(true);
               e.currentTarget.setPointerCapture(e.pointerId);
-              if (cropOp) cropStart.current = norm(e);
+              if (cropOp || redactOp) cropStart.current = norm(e);
               else updateSplit(e);
             }}
             onPointerMove={(e) => {
               if (!dragging) return;
+              // Redact commits on release: appending per move would add hundreds of
+              // overlapping regions.
               if (cropOp) dragCrop(e);
-              else updateSplit(e);
+              else if (!redactOp) updateSplit(e);
             }}
-            onPointerUp={() => {
+            onPointerUp={(e) => {
+              if (dragging && redactOp) commitRedact(e);
               setDragging(false);
               cropStart.current = null;
             }}
@@ -219,6 +246,7 @@ export default function Viewport() {
 
         <div className="flex items-center gap-3">
           {cropOp && <span className="text-accent">Drag a box to crop</span>}
+          {redactOp && <span className="text-accent">Drag boxes over what to hide</span>}
           {pickTarget && <span className="text-accent">Click the image to pick a colour</span>}
           <button
             type="button"

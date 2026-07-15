@@ -7,8 +7,10 @@ import { colorDelete } from "./colorDelete";
 import { colorSwap } from "./colorSwap";
 import { crop } from "./crop";
 import { cutoutStyle } from "./cutoutStyle";
+import { dither } from "./dither";
 import { duotone } from "./duotone";
 import { orient } from "./orient";
+import { redact } from "./redact";
 import { resize } from "./resize";
 
 /**
@@ -27,9 +29,11 @@ export const APPLY: Record<string, ApplyFn> = {
   "color-delete": colorDelete,
   "color-swap": colorSwap,
   duotone,
+  dither,
   colorblind,
   crop,
   resize,
   orient,
   adjust,
+  redact,
 };

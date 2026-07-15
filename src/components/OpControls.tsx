@@ -63,6 +63,32 @@ function CropControls({ op }: { op: Op }) {
   );
 }
 
+function RedactControls({ op }: { op: Op }) {
+  const updateParams = useEditor((s) => s.updateParams);
+  let count = 0;
+  try {
+    count = JSON.parse(String(op.params.regions || "[]")).length;
+  } catch {
+    count = 0;
+  }
+  return (
+    <div className="flex items-center justify-between text-[11px]">
+      <span className="text-text-muted">
+        {count === 0 ? "Drag boxes on the image" : `${count} box${count > 1 ? "es" : ""}`}
+      </span>
+      {count > 0 && (
+        <button
+          type="button"
+          className="btn btn-sm"
+          onClick={() => updateParams(op.id, { regions: "[]" })}
+        >
+          Clear
+        </button>
+      )}
+    </div>
+  );
+}
+
 function ColorRow({ op, control }: { op: Op; control: Control & { kind: "color" } }) {
   const updateParams = useEditor((s) => s.updateParams);
   const pickTarget = useEditor((s) => s.pickTarget);
@@ -212,6 +238,7 @@ export default function OpControls() {
       <div className="flex flex-col gap-3">
         {op.type === "bg-remove" && <BgRemoveNote />}
         {op.type === "crop" && <CropControls op={op} />}
+        {op.type === "redact" && <RedactControls op={op} />}
         {meta.controls
           .filter((c) => !(op.type === "resize" && c.key === "percent" && op.params.mode !== "percent"))
           .map((c) => (

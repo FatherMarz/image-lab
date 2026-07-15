@@ -6,6 +6,7 @@ import {
   FORMAT_LABELS,
   HAS_ALPHA,
   LOSSY,
+  VECTOR,
   detectFormats,
 } from "@/lib/formats";
 import { pipeline } from "@/lib/pipeline";
@@ -32,6 +33,12 @@ export default function ExportBar() {
   // exact for larger images.
   useEffect(() => {
     if (!preview || !source) return;
+    // SVG is traced, not encoded — its size has no relationship to pixel count, so
+    // any estimate here would be a fabrication.
+    if (VECTOR.includes(format)) {
+      setEstimate(null);
+      return;
+    }
     let cancelled = false;
     const t = setTimeout(async () => {
       const c = document.createElement("canvas");
@@ -73,6 +80,7 @@ export default function ExportBar() {
   }
 
   const lossy = LOSSY.includes(format);
+  const vector = VECTOR.includes(format);
 
   return (
     <div className="tile flex flex-col gap-3 p-3">
@@ -94,8 +102,10 @@ export default function ExportBar() {
       {lossy && (
         <label className="block">
           <div className="mb-1.5 flex items-center justify-between text-[11px]">
-            <span className="text-text-muted">Quality</span>
-            <span className="display">{quality}</span>
+            <span className="text-text-muted">{vector ? "Colours" : "Quality"}</span>
+            <span className="display">
+              {vector ? Math.max(2, Math.round((quality / 100) * 32)) : quality}
+            </span>
           </div>
           <input
             type="range"
@@ -108,16 +118,26 @@ export default function ExportBar() {
         </label>
       )}
 
+      {vector && (
+        <p className="text-[11px] text-text-muted">
+          Traced to vector paths. Clean on flat art and logos, messy on photographs.
+        </p>
+      )}
+
       {!HAS_ALPHA.includes(format) && (
         <p className="text-[11px] text-accent">
           {FORMAT_LABELS[format]} has no transparency — cutouts flatten onto white.
         </p>
       )}
 
-      <div className="flex items-center justify-between text-[11px] text-text-muted">
-        <span>Estimated</span>
-        <span className="display text-text">{estimate ? `~${bytes(estimate)}` : "—"}</span>
-      </div>
+      {!vector && (
+        <div className="flex items-center justify-between text-[11px] text-text-muted">
+          <span>Estimated</span>
+          <span className="display text-text">
+            {estimate ? `~${bytes(estimate)}` : "—"}
+          </span>
+        </div>
+      )}
 
       <button
         type="button"

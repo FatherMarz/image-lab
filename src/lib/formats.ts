@@ -5,6 +5,7 @@ export const FORMAT_LABELS: Record<ExportFormat, string> = {
   "image/jpeg": "JPG",
   "image/webp": "WebP",
   "image/avif": "AVIF",
+  "image/svg+xml": "SVG",
 };
 
 export const FORMAT_EXT: Record<ExportFormat, string> = {
@@ -12,13 +13,28 @@ export const FORMAT_EXT: Record<ExportFormat, string> = {
   "image/jpeg": "jpg",
   "image/webp": "webp",
   "image/avif": "avif",
+  "image/svg+xml": "svg",
 };
 
-/** Formats where the quality slider does anything. PNG is lossless. */
-export const LOSSY: ExportFormat[] = ["image/jpeg", "image/webp", "image/avif"];
+/** Formats where the quality slider does anything. PNG is lossless; for SVG the
+ * slider drives traced colour count instead of compression. */
+export const LOSSY: ExportFormat[] = [
+  "image/jpeg",
+  "image/webp",
+  "image/avif",
+  "image/svg+xml",
+];
 
 /** Alpha-capable. Exporting a cutout as JPG flattens it onto white. */
-export const HAS_ALPHA: ExportFormat[] = ["image/png", "image/webp", "image/avif"];
+export const HAS_ALPHA: ExportFormat[] = [
+  "image/png",
+  "image/webp",
+  "image/avif",
+  "image/svg+xml",
+];
+
+/** Vector output: no canvas codec, and size estimation by pixel ratio is meaningless. */
+export const VECTOR: ExportFormat[] = ["image/svg+xml"];
 
 const ALL: ExportFormat[] = ["image/png", "image/jpeg", "image/webp", "image/avif"];
 
@@ -36,5 +52,7 @@ export async function detectFormats(): Promise<ExportFormat[]> {
     const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, format, 0.9));
     if (blob && blob.type === format) supported.push(format);
   }
-  return supported.length ? supported : ["image/png"];
+  // SVG isn't a canvas codec — we trace it ourselves, so it's always available.
+  supported.push("image/svg+xml");
+  return supported;
 }

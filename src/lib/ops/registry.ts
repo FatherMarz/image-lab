@@ -180,6 +180,47 @@ export const OP_META: Record<string, OpMeta> = {
     ],
   },
 
+  redact: {
+    type: "redact",
+    label: "Redact",
+    group: "meta",
+    blurb: "Drag boxes over anything you need to hide.",
+    defaults: { regions: "[]", mode: "pixelate", strength: 12 },
+    controls: [
+      {
+        kind: "select",
+        key: "mode",
+        label: "Style",
+        options: [
+          { value: "pixelate", label: "Pixelate" },
+          { value: "fill", label: "Solid block" },
+        ],
+      },
+      { kind: "slider", key: "strength", label: "Block size", min: 2, max: 40, step: 1, unit: "%" },
+    ],
+  },
+
+  dither: {
+    type: "dither",
+    label: "Dither",
+    group: "color",
+    blurb: "Error-diffusion dithering. Fewer levels, more texture.",
+    defaults: { algorithm: "floyd", levels: 2, mono: true },
+    controls: [
+      {
+        kind: "select",
+        key: "algorithm",
+        label: "Algorithm",
+        options: [
+          { value: "floyd", label: "Floyd–Steinberg" },
+          { value: "atkinson", label: "Atkinson" },
+        ],
+      },
+      { kind: "slider", key: "levels", label: "Levels", min: 2, max: 8, step: 1 },
+      { kind: "toggle", key: "mono", label: "Monochrome" },
+    ],
+  },
+
   crop: {
     type: "crop",
     label: "Crop",
@@ -250,11 +291,13 @@ export const OP_ORDER: string[] = [
   "color-delete",
   "color-swap",
   "duotone",
+  "dither",
   "colorblind",
   "crop",
   "resize",
   "orient",
   "adjust",
+  "redact",
 ];
 
 export function metaFor(type: string): OpMeta {

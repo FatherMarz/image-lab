@@ -1,6 +1,7 @@
 import ColorPanel from "./components/ColorPanel";
 import Dropzone from "./components/Dropzone";
 import ExportBar from "./components/ExportBar";
+import MetaPanel from "./components/MetaPanel";
 import OpControls from "./components/OpControls";
 import PalettePanel from "./components/PalettePanel";
 import StackPanel from "./components/StackPanel";
@@ -39,6 +40,7 @@ export default function App() {
           <aside className="flex w-64 shrink-0 flex-col gap-4 overflow-y-auto border-l border-border p-3">
             <ColorPanel />
             <PalettePanel />
+            <MetaPanel />
             <div className="mt-auto">
               <ExportBar />
             </div>

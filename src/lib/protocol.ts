@@ -1,6 +1,13 @@
 import type { Op } from "./ops/types";
 
-export type ExportFormat = "image/png" | "image/jpeg" | "image/webp" | "image/avif";
+export type ExportFormat =
+  | "image/png"
+  | "image/jpeg"
+  | "image/webp"
+  | "image/avif"
+  /** Traced to vector paths at export rather than being a stack op — it changes the
+   * output format entirely, so it can't be an ImageData->ImageData transform. */
+  | "image/svg+xml";
 
 export type Request =
   | { kind: "load"; id: number; bitmap: ImageBitmap }

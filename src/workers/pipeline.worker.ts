@@ -119,6 +119,14 @@ async function encode(
   format: string,
   quality: number,
 ): Promise<Blob> {
+  if (format === "image/svg+xml") {
+    const { default: ImageTracer } = await import("imagetracerjs");
+    // quality (0..1) drives colour count: more colours = truer, but far more paths.
+    const numberofcolors = Math.max(2, Math.round(quality * 32));
+    const svg = ImageTracer.imagedataToSVG(data, { numberofcolors, scale: 1 });
+    return new Blob([svg], { type: "image/svg+xml" });
+  }
+
   const c = new OffscreenCanvas(data.width, data.height);
   const cx = c.getContext("2d")!;
 
