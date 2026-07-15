@@ -22,6 +22,16 @@ export default function App() {
           <a className="link text-[11px] text-text-muted" href="https://modul4r.com">
             a modul4r tool
           </a>
+          {/* AGPL-3.0 obliges us to offer the source to anyone using this over a
+              network, and this is the network. */}
+          <a
+            className="link text-[11px] text-text-muted"
+            href="https://github.com/FatherMarz/image-lab"
+            target="_blank"
+            rel="noreferrer"
+          >
+            source
+          </a>
         </div>
         {source && (
           <button type="button" className="btn btn-sm" onClick={reset}>
