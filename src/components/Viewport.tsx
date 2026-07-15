@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useEditor } from "@/stores/editorStore";
+import { rgbToHex } from "@/lib/color";
 import { bytes, dims } from "@/lib/format";
 
 export default function Viewport() {
@@ -9,6 +10,9 @@ export default function Viewport() {
   const busy = useEditor((s) => s.busy);
   const progress = useEditor((s) => s.progress);
   const error = useEditor((s) => s.error);
+
+  const pickTarget = useEditor((s) => s.pickTarget);
+  const pickColor = useEditor((s) => s.pickColor);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [comparing, setComparing] = useState(false);
@@ -46,6 +50,17 @@ export default function Viewport() {
     setSplit(Math.min(1, Math.max(0, f)));
   }
 
+  /** Read the pixel under the cursor. The canvas is CSS-scaled, so map through its
+   * bounding rect rather than using offsetX/offsetY. */
+  function sample(e: React.MouseEvent<HTMLCanvasElement>) {
+    const c = e.currentTarget;
+    const r = c.getBoundingClientRect();
+    const x = Math.floor(((e.clientX - r.left) / r.width) * c.width);
+    const y = Math.floor(((e.clientY - r.top) / r.height) * c.height);
+    const d = c.getContext("2d")!.getImageData(x, y, 1, 1).data;
+    pickColor(rgbToHex(d[0], d[1], d[2]));
+  }
+
   const downloading = progress?.phase === "downloading" && progress.total;
   const pct = downloading ? ((progress.loaded ?? 0) / progress.total!) * 100 : 0;
 
@@ -75,7 +90,10 @@ export default function Viewport() {
           <canvas
             ref={canvasRef}
             className="max-h-full max-w-full object-contain"
-            style={{ cursor: comparing ? "ew-resize" : "default" }}
+            style={{ cursor: comparing ? "ew-resize" : "crosshair" }}
+            onClick={(e) => {
+              if (!comparing) sample(e);
+            }}
             onPointerDown={(e) => {
               if (!comparing) return;
               setDragging(true);
@@ -108,13 +126,16 @@ export default function Viewport() {
           {error && <span className="text-accent">{error}</span>}
         </div>
 
-        <button
-          type="button"
-          className={`btn btn-sm ${comparing ? "btn-primary" : ""}`}
-          onClick={() => setComparing((v) => !v)}
-        >
-          {comparing ? "Comparing" : "Compare"}
-        </button>
+        <div className="flex items-center gap-3">
+          {pickTarget && <span className="text-accent">Click the image to pick a colour</span>}
+          <button
+            type="button"
+            className={`btn btn-sm ${comparing ? "btn-primary" : ""}`}
+            onClick={() => setComparing((v) => !v)}
+          >
+            {comparing ? "Comparing" : "Compare"}
+          </button>
+        </div>
       </div>
     </div>
   );

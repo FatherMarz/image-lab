@@ -24,6 +24,41 @@ function BgRemoveNote() {
   );
 }
 
+function ColorRow({ op, control }: { op: Op; control: Control & { kind: "color" } }) {
+  const updateParams = useEditor((s) => s.updateParams);
+  const pickTarget = useEditor((s) => s.pickTarget);
+  const setPickTarget = useEditor((s) => s.setPickTarget);
+  const value = String(op.params[control.key]);
+  const arming = pickTarget?.opId === op.id && pickTarget.key === control.key;
+
+  return (
+    <div className="flex items-center justify-between text-[11px]">
+      <span className="text-text-muted">{control.label}</span>
+      <span className="flex items-center gap-1.5">
+        <span className="display">{value}</span>
+        {/* Typing a hex for a colour that's already in the image is absurd — let them
+            point at it. This is what makes chroma key usable. */}
+        <button
+          type="button"
+          title="Pick from image"
+          onClick={() => setPickTarget(arming ? null : { opId: op.id, key: control.key })}
+          className={`border px-1.5 py-0.5 ${
+            arming ? "border-accent text-accent" : "border-border text-text-muted"
+          } hover:border-accent hover:text-accent`}
+        >
+          ⌖
+        </button>
+        <input
+          type="color"
+          value={value}
+          onChange={(e) => updateParams(op.id, { [control.key]: e.target.value })}
+          className="h-6 w-8 cursor-pointer border border-border bg-transparent p-0"
+        />
+      </span>
+    </div>
+  );
+}
+
 function ControlRow({ op, control }: { op: Op; control: Control }) {
   const updateParams = useEditor((s) => s.updateParams);
   const value = op.params[control.key];
@@ -66,20 +101,7 @@ function ControlRow({ op, control }: { op: Op; control: Control }) {
       );
 
     case "color":
-      return (
-        <label className="flex items-center justify-between text-[11px]">
-          <span className="text-text-muted">{control.label}</span>
-          <span className="flex items-center gap-2">
-            <span className="display">{String(value)}</span>
-            <input
-              type="color"
-              value={String(value)}
-              onChange={(e) => updateParams(op.id, { [control.key]: e.target.value })}
-              className="h-6 w-8 cursor-pointer border border-border bg-transparent p-0"
-            />
-          </span>
-        </label>
-      );
+      return <ColorRow op={op} control={control} />;
 
     case "image":
       return (

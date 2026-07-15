@@ -5,6 +5,7 @@ import type { Request, Response } from "@/lib/protocol";
 import { MAX_PIXELS, PREVIEW_MAX } from "@/lib/consts";
 import { setAsset } from "./assets";
 import { APPLY } from "./ops";
+import { extractPalette } from "./palette";
 
 type CacheEntry = { key: string; data: ImageData };
 
@@ -190,6 +191,12 @@ self.onmessage = async (e: MessageEvent<Request>) => {
           { kind: "rendered", id: msg.id, bitmap, width: data.width, height: data.height },
           [bitmap],
         );
+        break;
+      }
+
+      case "probe": {
+        const data = await runPipeline(msg.ops, msg.maxDim, msg.id);
+        post({ kind: "probed", id: msg.id, swatches: extractPalette(data, msg.count) });
         break;
       }
 

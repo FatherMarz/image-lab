@@ -7,6 +7,8 @@ export type Request =
   /** Side images an op needs (a replacement backdrop), referenced by params.assetId. */
   | { kind: "asset"; id: number; assetId: string; bitmap: ImageBitmap }
   | { kind: "render"; id: number; ops: Op[]; maxDim: number }
+  /** Reads the rendered result without mutating it (palette extraction). */
+  | { kind: "probe"; id: number; ops: Op[]; maxDim: number; count: number }
   | {
       kind: "export";
       id: number;
@@ -33,6 +35,7 @@ export type Response =
       preview: ImageBitmap;
     }
   | { kind: "ack"; id: number }
+  | { kind: "probed"; id: number; swatches: { hex: string; share: number }[] }
   | { kind: "rendered"; id: number; bitmap: ImageBitmap; width: number; height: number }
   | { kind: "exported"; id: number; blob: Blob; width: number; height: number }
   | { kind: "error"; id: number; message: string };

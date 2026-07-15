@@ -8,7 +8,8 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "e2e": "node scripts/e2e.mjs",
-    "e2e:bg": "node scripts/e2e-bg.mjs"
+    "e2e:bg": "node scripts/e2e-bg.mjs",
+    "e2e:color": "node scripts/e2e-color.mjs"
   },
   "dependencies": {
     "@huggingface/transformers": "^4.2.0",

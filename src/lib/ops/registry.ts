@@ -83,6 +83,89 @@ export const OP_META: Record<string, OpMeta> = {
     ],
   },
 
+  "color-delete": {
+    type: "color-delete",
+    label: "Delete Colour",
+    group: "color",
+    blurb: "Make one colour transparent. Pick it off the image with the dropper.",
+    defaults: {
+      color: "#00b140",
+      tolerance: 20,
+      softness: 15,
+      despill: true,
+    },
+    controls: [
+      { kind: "color", key: "color", label: "Colour" },
+      { kind: "slider", key: "tolerance", label: "Tolerance", min: 0, max: 100, step: 1 },
+      { kind: "slider", key: "softness", label: "Softness", min: 0, max: 100, step: 1 },
+      { kind: "toggle", key: "despill", label: "Remove edge fringe" },
+    ],
+  },
+
+  "color-swap": {
+    type: "color-swap",
+    label: "Swap Colour",
+    group: "color",
+    blurb: "Recolour one colour into another, keeping shading intact.",
+    defaults: {
+      from: "#dc2626",
+      to: "#2563eb",
+      tolerance: 25,
+      softness: 20,
+      preserveLuma: true,
+    },
+    controls: [
+      { kind: "color", key: "from", label: "From" },
+      { kind: "color", key: "to", label: "To" },
+      { kind: "slider", key: "tolerance", label: "Tolerance", min: 0, max: 100, step: 1 },
+      { kind: "slider", key: "softness", label: "Softness", min: 0, max: 100, step: 1 },
+      { kind: "toggle", key: "preserveLuma", label: "Keep lightness" },
+    ],
+  },
+
+  duotone: {
+    type: "duotone",
+    label: "Duotone",
+    group: "color",
+    blurb: "Map brightness onto a colour ramp.",
+    // A near-black to near-white ramp is just greyscale, which is a pointless default
+    // for a duotone. Ramp into the accent so the tool shows what it does on contact.
+    defaults: {
+      shadow: "#242721",
+      mid: "#7a8057",
+      highlight: "#d69c4a",
+      useMid: false,
+      amount: 100,
+    },
+    controls: [
+      { kind: "color", key: "shadow", label: "Shadows" },
+      { kind: "toggle", key: "useMid", label: "Add midtone" },
+      { kind: "color", key: "mid", label: "Midtone" },
+      { kind: "color", key: "highlight", label: "Highlights" },
+      { kind: "slider", key: "amount", label: "Amount", min: 0, max: 100, step: 1, unit: "%" },
+    ],
+  },
+
+  colorblind: {
+    type: "colorblind",
+    label: "Colourblind Sim",
+    group: "color",
+    blurb: "Preview the image as a dichromat sees it.",
+    defaults: { type: "deuteranopia" },
+    controls: [
+      {
+        kind: "select",
+        key: "type",
+        label: "Type",
+        options: [
+          { value: "deuteranopia", label: "Deuteranopia (green)" },
+          { value: "protanopia", label: "Protanopia (red)" },
+          { value: "tritanopia", label: "Tritanopia (blue)" },
+        ],
+      },
+    ],
+  },
+
   adjust: {
     type: "adjust",
     label: "Adjust",
@@ -98,7 +181,16 @@ export const OP_META: Record<string, OpMeta> = {
 };
 
 /** Rail order. Also the order ops land in the stack when clicked top-to-bottom. */
-export const OP_ORDER: string[] = ["bg-remove", "cutout-style", "bg-replace", "adjust"];
+export const OP_ORDER: string[] = [
+  "bg-remove",
+  "cutout-style",
+  "bg-replace",
+  "color-delete",
+  "color-swap",
+  "duotone",
+  "colorblind",
+  "adjust",
+];
 
 export function metaFor(type: string): OpMeta {
   const meta = OP_META[type];

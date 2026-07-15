@@ -22,8 +22,14 @@ interface EditorState {
   busy: boolean;
   progress: Progress | null;
   error: string | null;
+  /** Last colour read off the canvas, shown in the picker readout. */
+  picked: string | null;
+  /** When set, the next canvas click writes the colour into this op param. */
+  pickTarget: { opId: string; key: string } | null;
 
   loadFile: (file: File) => Promise<void>;
+  setPickTarget: (t: { opId: string; key: string } | null) => void;
+  pickColor: (hex: string) => void;
   addOp: (type: string) => void;
   updateParams: (id: string, params: OpParams) => void;
   toggleOp: (id: string) => void;
@@ -75,6 +81,21 @@ export const useEditor = create<EditorState>((set, get) => {
     busy: false,
     progress: null,
     error: null,
+    picked: null,
+    pickTarget: null,
+
+    setPickTarget(t) {
+      set({ pickTarget: t });
+    },
+
+    pickColor(hex) {
+      const target = get().pickTarget;
+      set({ picked: hex });
+      if (target) {
+        set({ pickTarget: null });
+        get().updateParams(target.opId, { [target.key]: hex });
+      }
+    },
 
     async loadFile(file) {
       set({ busy: true, error: null });

@@ -5,6 +5,7 @@ type Loaded = Extract<Response, { kind: "loaded" }>;
 type Rendered = Extract<Response, { kind: "rendered" }>;
 type Exported = Extract<Response, { kind: "exported" }>;
 type Ack = Extract<Response, { kind: "ack" }>;
+type Probed = Extract<Response, { kind: "probed" }>;
 
 export type Progress = { phase: string; loaded?: number; total?: number };
 
@@ -73,6 +74,10 @@ class PipelineClient {
 
   render(ops: Op[], maxDim: number) {
     return this.send<Rendered>({ kind: "render", ops, maxDim });
+  }
+
+  palette(ops: Op[], maxDim: number, count: number) {
+    return this.send<Probed>({ kind: "probe", ops, maxDim, count });
   }
 
   exportImage(ops: Op[], format: ExportFormat, quality: number) {
