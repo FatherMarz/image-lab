@@ -3,6 +3,7 @@ import { hasWebGPU } from "@/lib/gpu";
 import { CROP_PRESETS, metaFor } from "@/lib/ops/registry";
 import type { Control, Op } from "@/lib/ops/types";
 import { pipeline } from "@/lib/pipeline";
+import { inertControls, type TraceMode } from "@/lib/trace";
 import { useEditor } from "@/stores/editorStore";
 
 /**
@@ -278,6 +279,16 @@ export default function OpControls() {
         {op.type === "redact" && <RedactControls op={op} />}
         {meta.controls
           .filter((c) => !(op.type === "resize" && c.key === "percent" && op.params.mode !== "percent"))
+          // Vectorize's colour knobs do nothing on a thresholded image, and Threshold
+          // does nothing on a colour trace. Showing a slider that moves nothing is worse
+          // than not showing it.
+          .filter(
+            (c) =>
+              !(
+                op.type === "vectorize" &&
+                inertControls(String(op.params.mode) as TraceMode).includes(c.key)
+              ),
+          )
           .map((c) => (
             <ControlRow key={c.key} op={op} control={c} />
           ))}

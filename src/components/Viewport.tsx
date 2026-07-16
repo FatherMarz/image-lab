@@ -238,7 +238,9 @@ export default function Viewport() {
           {busy && (
             <span className="flex items-center gap-1.5">
               <span className="live-dot" />
-              {progress?.phase === "segmenting" ? "segmenting" : "working"}
+              {progress?.phase === "segmenting" || progress?.phase === "tracing"
+                ? progress.phase
+                : "working"}
             </span>
           )}
           {error && <span className="text-accent">{error}</span>}

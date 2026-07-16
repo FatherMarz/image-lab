@@ -2,6 +2,7 @@
 import { metaFor } from "@/lib/ops/registry";
 import type { Op, OpContext } from "@/lib/ops/types";
 import type { Request, Response } from "@/lib/protocol";
+import type { TraceParams } from "@/lib/trace";
 import { MAX_PIXELS, PREVIEW_MAX } from "@/lib/consts";
 import { setAsset } from "./assets";
 import { APPLY } from "./ops";
@@ -114,17 +115,71 @@ async function runPipeline(
   return current;
 }
 
+/**
+ * The one tracer call. Preview and export both route through here so what the viewport
+ * shows and what downloads can't drift apart.
+ *
+ * VTracer, not ImageTracer: measured on a wordmark, ImageTracer needed 217 paths and
+ * still wobbled the curves and fringed the letters, where this does it in 15 clean ones.
+ */
+async function toSvg(data: ImageData, p: TraceParams): Promise<string> {
+  const { TracerConfig, ColorMode, PathSimplifyMode, convertImageToSvg } =
+    await import("wasm_vtracer");
+
+  // Line art goes through the colour path on a black-and-white image rather than
+  // VTracer's ColorMode.Binary, which returns a single unfilled path spanning the whole
+  // frame for any source without a white background — a photo came back as one black
+  // rectangle. Thresholding here is what Potrace expects anyway, and it buys a real
+  // knob instead of an opaque built-in cutoff.
+  const input = p.mode === "lineart" ? binarize(data, p.threshold) : data;
+
+  const cfg = new TracerConfig();
+  try {
+    // A fresh TracerConfig defaults to pixel-art settings, so every field is set
+    // explicitly rather than relying on the constructor.
+    cfg.setColorMode(ColorMode.Color);
+    // Polygon, never None: None keeps raw pixel edges, which turned a 512x342 photo
+    // into 82,911 paths and 5.8MB.
+    cfg.setPathSimplifyMode(
+      p.mode === "pixel" ? PathSimplifyMode.Polygon : PathSimplifyMode.Spline,
+    );
+    // Two maximally distant colours: keep them apart rather than letting the colour
+    // knobs merge the ink back into the paper.
+    cfg.setColorPrecision(p.mode === "lineart" ? 8 : p.colorDetail);
+    cfg.setLayerDifference(p.mode === "lineart" ? 0 : p.mergeSimilar);
+    cfg.setFilterSpeckle(p.despeckle);
+    cfg.setCornerThreshold(p.corners);
+    cfg.setSpliceThreshold(p.smoothing);
+    return convertImageToSvg(new Uint8Array(input.data), input.width, input.height, cfg);
+  } finally {
+    cfg.free();
+  }
+}
+
+/** Luminance split into ink and paper. Transparent pixels count as paper, so tracing a
+ * cutout gives its silhouette rather than a frame-filling block. */
+function binarize(d: ImageData, threshold: number): ImageData {
+  const out = new ImageData(d.width, d.height);
+  for (let i = 0; i < d.data.length; i += 4) {
+    const a = d.data[i + 3];
+    const lum =
+      0.2126 * d.data[i] + 0.7152 * d.data[i + 1] + 0.0722 * d.data[i + 2];
+    const ink = a >= 128 && lum < threshold;
+    out.data[i] = out.data[i + 1] = out.data[i + 2] = ink ? 0 : 255;
+    out.data[i + 3] = 255;
+  }
+  return out;
+}
+
 async function encode(
   data: ImageData,
   format: string,
   quality: number,
 ): Promise<Blob> {
+  // Vector never reaches here: rasterizing SVG needs an <img>, which a worker has no
+  // access to, so PipelineClient.exportImage handles it on the main thread.
   if (format === "image/svg+xml") {
-    const { default: ImageTracer } = await import("imagetracerjs");
-    // quality (0..1) drives colour count: more colours = truer, but far more paths.
-    const numberofcolors = Math.max(2, Math.round(quality * 32));
-    const svg = ImageTracer.imagedataToSVG(data, { numberofcolors, scale: 1 });
-    return new Blob([svg], { type: "image/svg+xml" });
+    throw new Error("SVG export must go through PipelineClient, not the worker");
   }
 
   const c = new OffscreenCanvas(data.width, data.height);
@@ -205,6 +260,16 @@ self.onmessage = async (e: MessageEvent<Request>) => {
       case "probe": {
         const data = await runPipeline(msg.ops, msg.maxDim, msg.id);
         post({ kind: "probed", id: msg.id, swatches: extractPalette(data, msg.count) });
+        break;
+      }
+
+      case "trace": {
+        const data = await runPipeline(msg.ops, msg.maxDim, msg.id);
+        // Tracing is seconds, not milliseconds, on a busy image — say so rather than
+        // leaving the viewport looking hung.
+        post({ kind: "progress", id: msg.id, phase: "tracing" });
+        const svg = await toSvg(data, msg.trace);
+        post({ kind: "traced", id: msg.id, svg, width: data.width, height: data.height });
         break;
       }
 

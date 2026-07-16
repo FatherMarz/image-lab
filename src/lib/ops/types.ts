@@ -1,4 +1,4 @@
-export type OpGroup = "bg" | "color" | "transform" | "meta";
+export type OpGroup = "bg" | "color" | "transform" | "meta" | "output";
 
 export type OpParams = Record<string, number | string | boolean>;
 
@@ -44,6 +44,17 @@ export interface OpMeta {
   blurb: string;
   defaults: OpParams;
   controls: Control[];
+  /**
+   * This op must sit last in the stack and has no entry in APPLY — it changes the
+   * output's representation rather than its pixels, so nothing can run after it and
+   * the worker can't produce it as ImageData.
+   *
+   * Vectorize is the only one today: Chrome can't decode SVG through
+   * createImageBitmap on either thread, so its result is rasterized on the main
+   * thread (src/lib/svg.ts) and the worker never sees it. PipelineClient strips
+   * terminal ops before every worker call; the store keeps them pinned last.
+   */
+  terminal?: boolean;
 }
 
 /**

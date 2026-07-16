@@ -1,13 +1,32 @@
+import { HAS_ALPHA, VECTOR } from "./formats";
+import { metaFor } from "./ops/registry";
 import type { Op } from "./ops/types";
 import type { ExportFormat, Request, Response } from "./protocol";
+import { svgToBitmap } from "./svg";
+import { traceFor, type TraceParams } from "./trace";
 
 type Loaded = Extract<Response, { kind: "loaded" }>;
 type Rendered = Extract<Response, { kind: "rendered" }>;
+type Traced = Extract<Response, { kind: "traced" }>;
 type Exported = Extract<Response, { kind: "exported" }>;
 type Ack = Extract<Response, { kind: "ack" }>;
 type Probed = Extract<Response, { kind: "probed" }>;
 
 export type Progress = { phase: string; loaded?: number; total?: number };
+
+/** What exportImage hands back. The worker's own `exported` carries protocol fields
+ * the callers never read, and the vector path doesn't go through the worker at all. */
+export type ExportResult = { blob: Blob; width: number; height: number };
+
+/**
+ * Terminal ops (Vectorize) have no worker implementation, so every request that runs
+ * the pipeline drops them first. Centralised here rather than at the call sites —
+ * PalettePanel hands its stack straight to the worker and would otherwise throw the
+ * moment someone added the tool.
+ */
+function stripTerminal(ops: Op[]): Op[] {
+  return ops.filter((o) => !metaFor(o.type).terminal);
+}
 
 type Pending = {
   resolve: (value: never) => void;
@@ -75,15 +94,55 @@ export class PipelineClient {
   }
 
   render(ops: Op[], maxDim: number) {
-    return this.send<Rendered>({ kind: "render", ops, maxDim });
+    return this.send<Rendered>({ kind: "render", ops: stripTerminal(ops), maxDim });
   }
 
   palette(ops: Op[], maxDim: number, count: number) {
-    return this.send<Probed>({ kind: "probe", ops, maxDim, count });
+    return this.send<Probed>({ kind: "probe", ops: stripTerminal(ops), maxDim, count });
   }
 
-  exportImage(ops: Op[], format: ExportFormat, quality: number) {
-    return this.send<Exported>({ kind: "export", ops, format, quality });
+  trace(ops: Op[], maxDim: number, trace: TraceParams) {
+    return this.send<Traced>({ kind: "trace", ops: stripTerminal(ops), maxDim, trace });
+  }
+
+  /**
+   * Vector export can't run in the worker — rasterizing SVG needs an <img>, and Chrome
+   * won't decode it through createImageBitmap on either thread. So when a trace is in
+   * force the worker returns markup and this finishes the job on the main thread.
+   *
+   * Living here means batch runs and icon sets get it for free; both already call this.
+   */
+  async exportImage(
+    ops: Op[],
+    format: ExportFormat,
+    quality: number,
+  ): Promise<ExportResult> {
+    const params = traceFor(ops, format);
+    if (!params) {
+      return this.send<Exported>({ kind: "export", ops, format, quality });
+    }
+
+    const { svg, width, height } = await this.trace(ops, 0, params);
+    if (VECTOR.includes(format)) {
+      return { blob: new Blob([svg], { type: format }), width, height };
+    }
+
+    // Raster export of a traced image: what the viewport showed, as pixels.
+    const bmp = await svgToBitmap(svg, width, height);
+    const c = document.createElement("canvas");
+    c.width = width;
+    c.height = height;
+    const cx = c.getContext("2d")!;
+    // Same reason as the worker's encode(): formats without alpha would land
+    // transparent pixels as black.
+    if (!HAS_ALPHA.includes(format)) {
+      cx.fillStyle = "#ffffff";
+      cx.fillRect(0, 0, width, height);
+    }
+    cx.drawImage(bmp, 0, 0);
+    const blob = await new Promise<Blob | null>((r) => c.toBlob(r, format, quality));
+    if (!blob) throw new Error(`Could not encode ${format}`);
+    return { blob, width, height };
   }
 
   dispose() {

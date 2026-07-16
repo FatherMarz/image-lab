@@ -31,7 +31,13 @@ export default function StackPanel() {
         </p>
       ) : (
         <ol className="flex flex-col gap-1">
-          {ops.map((op, i) => (
+          {ops.map((op, i) => {
+            // A terminal op (Vectorize) is pinned last, so neither it nor its
+            // neighbour can trade places with it. Disable rather than let the click
+            // land on a store guard that silently does nothing.
+            const pinned = Boolean(metaFor(op.type).terminal);
+            const nextPinned = i + 1 < ops.length && metaFor(ops[i + 1].type).terminal;
+            return (
             <li
               key={op.id}
               className={`tile flex items-center gap-1.5 px-2 py-1.5 text-[11px] ${
@@ -56,8 +62,8 @@ export default function StackPanel() {
               </button>
               <button
                 type="button"
-                title="Move up"
-                disabled={i === 0}
+                title={pinned ? "Vectorize stays last" : "Move up"}
+                disabled={i === 0 || pinned}
                 className="px-1 text-text-muted hover:text-accent disabled:opacity-30"
                 onClick={() => moveOp(op.id, -1)}
               >
@@ -65,8 +71,8 @@ export default function StackPanel() {
               </button>
               <button
                 type="button"
-                title="Move down"
-                disabled={i === ops.length - 1}
+                title={pinned || nextPinned ? "Vectorize stays last" : "Move down"}
+                disabled={i === ops.length - 1 || pinned || nextPinned}
                 className="px-1 text-text-muted hover:text-accent disabled:opacity-30"
                 onClick={() => moveOp(op.id, 1)}
               >
@@ -81,7 +87,8 @@ export default function StackPanel() {
                 ×
               </button>
             </li>
-          ))}
+            );
+          })}
         </ol>
       )}
       </div>

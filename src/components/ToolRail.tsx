@@ -7,9 +7,10 @@ const GROUP_LABELS: Record<OpGroup, string> = {
   color: "Colour",
   transform: "Transform",
   meta: "Meta",
+  output: "Output",
 };
 
-const GROUP_ORDER: OpGroup[] = ["bg", "color", "transform", "meta"];
+const GROUP_ORDER: OpGroup[] = ["bg", "color", "transform", "meta", "output"];
 
 export default function ToolRail() {
   const ops = useEditor((s) => s.ops);

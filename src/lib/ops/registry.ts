@@ -1,3 +1,4 @@
+import { TRACE_DEFAULTS } from "../trace";
 import type { OpMeta } from "./types";
 
 /**
@@ -321,6 +322,35 @@ export const OP_META: Record<string, OpMeta> = {
       { kind: "toggle", key: "flipV", label: "Flip vertical" },
     ],
   },
+
+  vectorize: {
+    type: "vectorize",
+    label: "Vectorize",
+    short: "Vectorize",
+    group: "output",
+    blurb: "Trace to real vector paths — editable curves, not a raster in a .svg.",
+    // Terminal: no APPLY entry, pinned last. See OpMeta.terminal.
+    terminal: true,
+    defaults: { ...TRACE_DEFAULTS },
+    controls: [
+      {
+        kind: "select",
+        key: "mode",
+        label: "Mode",
+        options: [
+          { value: "color", label: "Colour" },
+          { value: "lineart", label: "Line art" },
+          { value: "pixel", label: "Pixel art" },
+        ],
+      },
+      { kind: "slider", key: "colorDetail", label: "Colour detail", min: 1, max: 8, step: 1 },
+      { kind: "slider", key: "mergeSimilar", label: "Merge similar", min: 0, max: 128, step: 1 },
+      { kind: "slider", key: "threshold", label: "Threshold", min: 16, max: 240, step: 4 },
+      { kind: "slider", key: "despeckle", label: "Despeckle", min: 0, max: 32, step: 1 },
+      { kind: "slider", key: "corners", label: "Corners", min: 0, max: 180, step: 5 },
+      { kind: "slider", key: "smoothing", label: "Smoothing", min: 0, max: 180, step: 5 },
+    ],
+  },
 };
 
 /** Crop presets. "OG" is the 1.91:1 ratio link previews use. */
@@ -348,6 +378,7 @@ export const OP_ORDER: string[] = [
   "adjust",
   "frame",
   "redact",
+  "vectorize",
 ];
 
 export function metaFor(type: string): OpMeta {

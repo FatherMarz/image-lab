@@ -2,6 +2,8 @@ import { create } from "zustand";
 import { pipeline, type Progress } from "@/lib/pipeline";
 import { PREVIEW_MAX } from "@/lib/consts";
 import { readExif, type ExifSummary } from "@/lib/exif";
+import { svgToBitmap } from "@/lib/svg";
+import { traceFor } from "@/lib/trace";
 import type { ExportFormat } from "@/lib/protocol";
 import { metaFor } from "@/lib/ops/registry";
 import type { Op, OpParams } from "@/lib/ops/types";
@@ -30,6 +32,8 @@ interface EditorState {
   pickTarget: { opId: string; key: string } | null;
   /** True while the crop op is selected and therefore bypassed in the preview. */
   cropEditing: boolean;
+  /** True when the viewport is showing traced paths rather than the raster render. */
+  tracing: boolean;
   exif: ExifSummary | null;
   /** Export settings live here so batch and icon runs use the same choices. */
   exportFormat: ExportFormat;
@@ -61,23 +65,37 @@ export const useEditor = create<EditorState>((set, get) => {
     // While the crop tool is selected, bypass it so the full frame stays visible and
     // draggable — you can't drag a crop box on an already-cropped image. It re-applies
     // the moment another tool is selected.
-    const { ops, activeOpId } = get();
+    const { ops, activeOpId, exportFormat } = get();
     const active = ops.find((o) => o.id === activeOpId);
     const cropEditing = active?.type === "crop" && active.enabled;
     const renderOps = cropEditing
       ? ops.map((o) => (o.id === activeOpId ? { ...o, enabled: false } : o))
       : ops;
 
-    set({ busy: true, cropEditing: Boolean(cropEditing) });
+    // The Vectorize tool traces; so does picking SVG without it. Suspended while
+    // dragging a crop box, where a seconds-long retrace per pointer move would make
+    // the box undraggable.
+    const params = traceFor(renderOps, exportFormat);
+    const tracing = Boolean(params) && !cropEditing;
+
+    set({ busy: true, cropEditing: Boolean(cropEditing), tracing });
     try {
-      const res = await pipeline.render(renderOps, PREVIEW_MAX);
+      let bitmap: ImageBitmap;
+      if (tracing) {
+        const res = await pipeline.trace(renderOps, PREVIEW_MAX, params!);
+        if (token !== renderToken) return;
+        bitmap = await svgToBitmap(res.svg, res.width, res.height);
+      } else {
+        const res = await pipeline.render(renderOps, PREVIEW_MAX);
+        bitmap = res.bitmap;
+      }
       if (token !== renderToken) {
         // A newer render already landed; this result is stale.
-        res.bitmap.close();
+        bitmap.close();
         return;
       }
       const stale = get().preview;
-      set({ preview: res.bitmap, busy: false, error: null });
+      set({ preview: bitmap, busy: false, error: null });
       stale?.close();
     } catch (err) {
       if (token !== renderToken) return;
@@ -90,7 +108,10 @@ export const useEditor = create<EditorState>((set, get) => {
 
   function schedule() {
     clearTimeout(renderTimer);
-    renderTimer = setTimeout(render, 60);
+    // A trace costs seconds where a raster render costs milliseconds, so let the
+    // input settle for longer before starting one.
+    const delay = traceFor(get().ops, get().exportFormat) ? 250 : 60;
+    renderTimer = setTimeout(render, delay);
   }
 
   return {
@@ -105,14 +126,20 @@ export const useEditor = create<EditorState>((set, get) => {
     picked: null,
     pickTarget: null,
     cropEditing: false,
+    tracing: false,
     exif: null,
     exportFormat: "image/png",
     exportQuality: 90,
 
     setExportFormat(f) {
+      const had = Boolean(traceFor(get().ops, get().exportFormat));
       set({ exportFormat: f });
+      // Format only changes the preview when the trace comes or goes — with the
+      // Vectorize tool in the stack it's already tracing either way.
+      if (had !== Boolean(traceFor(get().ops, f))) schedule();
     },
     setExportQuality(q) {
+      // Encoder setting only. The trace is the Vectorize tool's business.
       set({ exportQuality: q });
     },
 
@@ -175,7 +202,12 @@ export const useEditor = create<EditorState>((set, get) => {
         enabled: true,
         params: { ...meta.defaults },
       };
-      set({ ops: [...get().ops, op], activeOpId: op.id });
+      // A terminal op has to stay last, so everything else tucks in ahead of it
+      // rather than landing after and being silently ignored.
+      const ops = [...get().ops];
+      const at = meta.terminal ? ops.length : ops.findIndex((o) => metaFor(o.type).terminal);
+      ops.splice(at < 0 ? ops.length : at, 0, op);
+      set({ ops, activeOpId: op.id });
       schedule();
     },
 
@@ -208,6 +240,8 @@ export const useEditor = create<EditorState>((set, get) => {
       const i = ops.findIndex((o) => o.id === id);
       const j = i + dir;
       if (i < 0 || j < 0 || j >= ops.length) return;
+      // Neither dragging a terminal op off the end nor pushing another op past it.
+      if (metaFor(ops[i].type).terminal || metaFor(ops[j].type).terminal) return;
       [ops[i], ops[j]] = [ops[j], ops[i]];
       set({ ops });
       schedule();

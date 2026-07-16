@@ -113,7 +113,8 @@ const [svgDl] = await Promise.all([
 const svgPath = path.join(OUT, svgDl.suggestedFilename());
 await svgDl.saveAs(svgPath);
 const svg = fs.readFileSync(svgPath, "utf8");
-check("SVG export produces real vector markup", svg.startsWith("<svg") && svg.includes("<path"), `${(svg.length / 1024).toFixed(0)}KB, ${(svg.match(/<path/g) || []).length} paths`);
+// Not startsWith("<svg"): VTracer emits an XML prolog and a generator comment first.
+check("SVG export produces real vector markup", svg.includes("<svg") && svg.includes("<path"), `${(svg.length / 1024).toFixed(0)}KB, ${(svg.match(/<path/g) || []).length} paths`);
 check("SVG filename has the right extension", svgDl.suggestedFilename().endsWith(".svg"));
 
 await browser.close();

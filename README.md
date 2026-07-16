@@ -17,9 +17,33 @@ one of these jobs.
 | Colour | Delete Colour (chroma key) · Swap Colour · Duotone · Dither · Colourblind Sim |
 | Transform | Crop (+ social/OG presets) · Resize (Lanczos) · Rotate + Flip · Adjust · Screenshot Polish |
 | Meta | Redact |
+| Output | Vectorize — Colour / Line art / Pixel art, + Colour detail · Merge similar · Threshold · Despeckle · Corners · Smoothing |
 | Panels | Colour picker (HEX/RGB/HSL + WCAG contrast) · Palette extract + export · Metadata · Batch + icon set |
 
-Export: PNG, JPG, WebP, AVIF (where the browser can encode it), SVG (traced).
+Export: PNG, JPG, WebP, AVIF (where the browser can encode it), SVG.
+
+Vectorize is the one *terminal* op: it pins to the end of the stack and has no
+implementation in `src/workers/ops`. Chrome can't decode SVG through
+`createImageBitmap` on the main thread or in a worker, so the worker traces and returns
+markup, and the main thread rasterizes it (`src/lib/svg.ts`) — the preview is the exact
+SVG that downloads. `PipelineClient` strips terminal ops before every worker call;
+`OpMeta.terminal` is the flag. Picking SVG without the tool traces at defaults.
+
+The engine is VTracer (`wasm_vtracer`, MIT), running as WASM inside the pipeline worker
+— hence `vite-plugin-wasm` in both the app and worker plugin lists. It replaced
+ImageTracer after a measured bake-off on a wordmark:
+
+| engine | paths | KB |
+| --- | --- | --- |
+| imagetracerjs | 217 | 34.5 |
+| **vtracer (colour + spline)** | **15** | **8.3** |
+
+ImageTracer also fringed the letterforms and wobbled the curves. Two VTracer traps are
+worked around in `pipeline.worker.ts`, both of which look fine in a metrics table:
+`PathSimplifyMode.None` keeps raw pixel edges (82,911 paths and 5.8MB from a 512×342
+photo), and `ColorMode.Binary` returns a single unfilled path spanning the frame for any
+source without a white background — so Line art binarizes here and traces as colour,
+which is what Potrace expects anyway and buys a real Threshold knob.
 
 ## Develop
 
@@ -33,6 +57,7 @@ npm run e2e              # pipeline: stack, params, toggle, compare, export
 npm run e2e:color        # picker, palette, delete, swap
 npm run e2e:transform    # crop/resize/rotate, asserted on exported PNG headers
 npm run e2e:privacy      # EXIF, redaction, dither, SVG
+npm run e2e:trace        # Vectorize: traces the preview, knobs, pinned last, export
 npm run e2e:batch        # batch + icon set, asserted on zip contents
 npm run e2e:bg           # background removal, WASM path (~25s/cutout)
 HEADED=1 npm run e2e:bg  # background removal, WebGPU path (~0.6s/cutout)

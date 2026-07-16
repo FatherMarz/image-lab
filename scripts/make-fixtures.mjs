@@ -3,13 +3,19 @@
 //   node scripts/make-fixtures.mjs
 //
 // photo.jpg, swatch.png and grey.png are committed as-is:
-//   photo.jpg  — a real photo (person against a building); synthetic images are
-//                useless for testing salient-object segmentation, which reads a
-//                colour chart as one big object and correctly removes nothing.
+//   photo.jpg  — a real photo (a dog on grass); synthetic images are useless for
+//                testing salient-object segmentation, which reads a colour chart as
+//                one big object and correctly removes nothing. Cropped from the White
+//                House official portrait of "Buddy" (US government work, public
+//                domain) via Wikimedia Commons. The collar and tag also give the
+//                palette and trace tests some real colour to chew on.
 //   swatch.png — exact planted hexes (#DC2626 / #2563EB / #FACC15 / #00B140 field /
 //                #18181B circle) so colour picking and palette k-means can be
 //                asserted exactly rather than approximately.
 //   grey.png   — flat #808080 for tonal maths.
+//   logo.png   — a wordmark: curves, thin strokes and a counter to punch out. The case
+//                a vectorizer is actually bought for; photo.jpg and swatch.png between
+//                them can't tell a good tracer from a bad one.
 //
 // photo-gps.jpg is derived here because it needs EXIF that no camera gave us.
 import piexif from "piexifjs";

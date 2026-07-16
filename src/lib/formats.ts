@@ -16,14 +16,9 @@ export const FORMAT_EXT: Record<ExportFormat, string> = {
   "image/svg+xml": "svg",
 };
 
-/** Formats where the quality slider does anything. PNG is lossless; for SVG the
- * slider drives traced colour count instead of compression. */
-export const LOSSY: ExportFormat[] = [
-  "image/jpeg",
-  "image/webp",
-  "image/avif",
-  "image/svg+xml",
-];
+/** Formats where the quality slider does anything. PNG is lossless; SVG has no
+ * encoder at all — its settings belong to the Vectorize tool. */
+export const LOSSY: ExportFormat[] = ["image/jpeg", "image/webp", "image/avif"];
 
 /** Alpha-capable. Exporting a cutout as JPG flattens it onto white. */
 export const HAS_ALPHA: ExportFormat[] = [

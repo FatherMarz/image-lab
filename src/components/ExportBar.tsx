@@ -11,7 +11,14 @@ import {
 } from "@/lib/formats";
 import { pipeline } from "@/lib/pipeline";
 import type { ExportFormat } from "@/lib/protocol";
+import { traceFor, type TraceMode } from "@/lib/trace";
 import { useEditor } from "@/stores/editorStore";
+
+const MODE_LABELS: Record<TraceMode, string> = {
+  color: "colour",
+  lineart: "line art",
+  pixel: "pixel art",
+};
 
 export default function ExportBar() {
   const source = useEditor((s) => s.source);
@@ -84,6 +91,10 @@ export default function ExportBar() {
 
   const lossy = LOSSY.includes(format);
   const vector = VECTOR.includes(format);
+  // Read-only mirror of what the trace will actually use, so the panel still answers
+  // "how many colours" without owning the setting.
+  const trace = traceFor(ops, format);
+  const hasTool = ops.some((o) => o.type === "vectorize" && o.enabled);
 
   return (
     // Every row renders in every state, with a reserved note line. Showing and hiding
@@ -106,9 +117,9 @@ export default function ExportBar() {
 
       <label className="block">
         <div className="mb-1.5 flex items-center justify-between text-[11px]">
-          <span className="text-text-muted">{vector ? "Colours" : "Quality"}</span>
+          <span className="text-text-muted">{vector ? "Mode" : "Quality"}</span>
           <span className="display">
-            {!lossy ? "lossless" : vector ? Math.max(2, Math.round((quality / 100) * 32)) : quality}
+            {vector ? MODE_LABELS[trace?.mode ?? "color"] : !lossy ? "lossless" : quality}
           </span>
         </div>
         <input
@@ -132,7 +143,9 @@ export default function ExportBar() {
 
       <p className="h-6 text-[10px] leading-tight text-accent">
         {vector
-          ? "Traced to paths. Clean on flat art, messy on photos."
+          ? hasTool
+            ? "Trace settings live in the Vectorize tool."
+            : "Tracing at defaults. Add Vectorize to tune it."
           : !HAS_ALPHA.includes(format)
             ? `${FORMAT_LABELS[format]} has no transparency — cutouts flatten onto white.`
             : ""}
