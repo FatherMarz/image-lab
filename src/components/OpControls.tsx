@@ -142,7 +142,7 @@ function ColorRow({ op, control }: { op: Op; control: Control & { kind: "color" 
           type="button"
           title="Pick from image"
           onClick={() => setPickTarget(arming ? null : { opId: op.id, key: control.key })}
-          className={`border px-1.5 py-0.5 ${
+          className={`border px-2 py-1.5 md:px-1.5 md:py-0.5 ${
             arming ? "border-accent text-accent" : "border-border text-text-muted"
           } hover:border-accent hover:text-accent`}
         >
@@ -152,7 +152,7 @@ function ColorRow({ op, control }: { op: Op; control: Control & { kind: "color" 
           type="color"
           value={value}
           onChange={(e) => updateParams(op.id, { [control.key]: e.target.value })}
-          className="h-6 w-8 cursor-pointer border border-border bg-transparent p-0"
+          className="h-8 w-10 cursor-pointer border border-border bg-transparent p-0 md:h-6 md:w-8"
         />
       </span>
     </div>
@@ -195,7 +195,7 @@ function ControlRow({ op, control }: { op: Op; control: Control }) {
             type="checkbox"
             checked={Boolean(value)}
             onChange={(e) => updateParams(op.id, { [control.key]: e.target.checked })}
-            className="accent-accent"
+            className="h-5 w-5 accent-accent md:h-4 md:w-4"
           />
         </label>
       );

@@ -189,11 +189,13 @@ export default function Viewport() {
         </div>
       )}
 
-      <div className="checker flex flex-1 items-center justify-center overflow-hidden p-6">
+      <div className="checker flex flex-1 items-center justify-center overflow-hidden p-3 sm:p-6">
         {preview ? (
           <canvas
             ref={canvasRef}
-            className="max-h-full max-w-full object-contain"
+            // touch-none: crop/redact/compare are pointer drags on the canvas. Without
+            // it a touch drag scrolls or zooms the page and the pointermove never lands.
+            className="max-h-full max-w-full touch-none object-contain"
             style={{ cursor: comparing ? "ew-resize" : "crosshair" }}
             onClick={(e) => {
               if (!comparing && !cropOp && !redactOp) sample(e);
@@ -227,7 +229,7 @@ export default function Viewport() {
         )}
       </div>
 
-      <div className="flex items-center justify-between gap-4 border-t border-border bg-surface/40 px-4 py-2 text-[11px] text-text-muted">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-border bg-surface/40 px-4 py-2 text-[11px] text-text-muted">
         <div className="flex items-center gap-3">
           {source && <span>{dims(source.width, source.height)}</span>}
           {source?.downscaledFrom && (
@@ -249,7 +251,7 @@ export default function Viewport() {
         <div className="flex items-center gap-3">
           {cropOp && <span className="text-accent">Drag a box to crop</span>}
           {redactOp && <span className="text-accent">Drag boxes over what to hide</span>}
-          {pickTarget && <span className="text-accent">Click the image to pick a colour</span>}
+          {pickTarget && <span className="text-accent">Tap the image to pick a colour</span>}
           <button
             type="button"
             className={`btn btn-sm ${comparing ? "btn-primary" : ""}`}

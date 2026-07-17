@@ -21,7 +21,7 @@
   html,
   body,
   #root {
-    @apply min-h-screen;
+    @apply min-h-dvh;
   }
 
   body {
@@ -29,6 +29,27 @@
     color: rgb(var(--text));
     font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
+  }
+
+  /* Kill the grey flash iOS paints over every tap; the components carry their own
+     hover/active states. */
+  button,
+  a,
+  label,
+  [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* iOS Safari zooms the page when a control smaller than 16px takes focus. Bump the
+     form controls to 16px on phones only — desktop keeps the compact HUD sizing. */
+  @media (max-width: 767px) {
+    select,
+    textarea,
+    input[type="text"],
+    input[type="number"],
+    input[type="search"] {
+      font-size: 16px;
+    }
   }
 
   ::selection {
@@ -56,7 +77,7 @@
 
   /* Page ground — scanlines + faint gold glow, the tundra night HUD */
   .page {
-    min-height: 100vh;
+    min-height: 100dvh;
     background-color: rgb(var(--bg));
     background-image:
       repeating-linear-gradient(
@@ -139,6 +160,39 @@
     100% {
       transform: scale(1.4);
       opacity: 0;
+    }
+  }
+
+  /* Mobile bottom sheet entrance. Deliberately NOT fill-mode both: once it finishes it
+     must release the transform back to the element's inline style, which is what the
+     swipe-to-dismiss drag writes. */
+  .sheet-up {
+    animation: sheetUp 0.22s ease;
+  }
+  @keyframes sheetUp {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  /* Landscape variant: the sheet comes in from the right instead of the bottom, so the
+     canvas keeps its scarce height. Same no-fill rule so the drag transform survives. */
+  .sheet-right {
+    animation: sheetRight 0.22s ease;
+  }
+  @keyframes sheetRight {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
     }
   }
 
@@ -285,6 +339,8 @@
 
   @media (prefers-reduced-motion: reduce) {
     .view,
+    .sheet-up,
+    .sheet-right,
     .rise,
     .rise-1,
     .rise-2,

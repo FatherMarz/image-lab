@@ -24,7 +24,7 @@ export default function StackPanel() {
       {/* Fixed height, self-scrolling. This region is pinned above nothing — it steals
           its height from the tool controls — so the reserve has to be constant. A
           max-height still shrank the rail by a row per op until it hit the cap. */}
-      <div className="h-32 overflow-y-auto">
+      <div className="overflow-visible md:h-32 md:overflow-y-auto">
       {ops.length === 0 ? (
         <p className="text-[11px] text-text-muted">
           Pick a tool. Edits stack in order and stay editable.
@@ -55,7 +55,7 @@ export default function StackPanel() {
               <button
                 type="button"
                 title={op.enabled ? "Disable" : "Enable"}
-                className="px-1 text-text-muted hover:text-accent"
+                className="flex h-9 w-8 items-center justify-center text-text-muted hover:text-accent md:h-6 md:w-6"
                 onClick={() => toggleOp(op.id)}
               >
                 {op.enabled ? "◉" : "○"}
@@ -64,7 +64,7 @@ export default function StackPanel() {
                 type="button"
                 title={pinned ? "Vectorize stays last" : "Move up"}
                 disabled={i === 0 || pinned}
-                className="px-1 text-text-muted hover:text-accent disabled:opacity-30"
+                className="flex h-9 w-8 items-center justify-center text-text-muted hover:text-accent md:h-6 md:w-6 disabled:opacity-30"
                 onClick={() => moveOp(op.id, -1)}
               >
                 ↑
@@ -73,7 +73,7 @@ export default function StackPanel() {
                 type="button"
                 title={pinned || nextPinned ? "Vectorize stays last" : "Move down"}
                 disabled={i === ops.length - 1 || pinned || nextPinned}
-                className="px-1 text-text-muted hover:text-accent disabled:opacity-30"
+                className="flex h-9 w-8 items-center justify-center text-text-muted hover:text-accent md:h-6 md:w-6 disabled:opacity-30"
                 onClick={() => moveOp(op.id, 1)}
               >
                 ↓
@@ -81,7 +81,7 @@ export default function StackPanel() {
               <button
                 type="button"
                 title="Remove"
-                className="px-1 text-text-muted hover:text-accent"
+                className="flex h-9 w-8 items-center justify-center text-text-muted hover:text-accent md:h-6 md:w-6"
                 onClick={() => removeOp(op.id)}
               >
                 ×

@@ -45,7 +45,7 @@ export default function ToolRail() {
                   data-tool={meta.type}
                   onClick={() => addOp(meta.type)}
                   title={meta.blurb}
-                  className={`tile tile-interactive flex h-8 min-w-0 items-center gap-1.5 px-2 text-left text-[11px] ${
+                  className={`tile tile-interactive flex h-10 min-w-0 items-center gap-1.5 px-2 text-left text-[11px] md:h-8 ${
                     active ? "border-accent" : ""
                   }`}
                 >
