@@ -13,6 +13,7 @@ import { frame } from "./frame";
 import { orient } from "./orient";
 import { redact } from "./redact";
 import { resize } from "./resize";
+import { watermark } from "./watermark";
 
 /**
  * Worker-side op implementations, keyed to OP_META in src/lib/ops/registry.ts.
@@ -38,4 +39,5 @@ export const APPLY: Record<string, ApplyFn> = {
   adjust,
   frame,
   redact,
+  "wm-remove": watermark,
 };

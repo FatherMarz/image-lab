@@ -244,6 +244,18 @@ export const OP_META: Record<string, OpMeta> = {
     ],
   },
 
+  "wm-remove": {
+    type: "wm-remove",
+    label: "Gemini Watermark",
+    short: "Gemini",
+    group: "watermark",
+    blurb: "Erase the sparkle from the bottom-right corner. Works on any background.",
+    defaults: { strength: 100 },
+    controls: [
+      { kind: "slider", key: "strength", label: "Strength", min: 0, max: 100, step: 5 },
+    ],
+  },
+
   dither: {
     type: "dither",
     label: "Dither",
@@ -378,6 +390,7 @@ export const OP_ORDER: string[] = [
   "adjust",
   "frame",
   "redact",
+  "wm-remove",
   "vectorize",
 ];
 

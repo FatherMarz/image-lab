@@ -1,4 +1,4 @@
-export type OpGroup = "bg" | "color" | "transform" | "meta" | "output";
+export type OpGroup = "bg" | "color" | "transform" | "meta" | "watermark" | "output";
 
 export type OpParams = Record<string, number | string | boolean>;
 
