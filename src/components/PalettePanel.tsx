@@ -13,6 +13,21 @@ const FORMATS: { id: Format; label: string }[] = [
   { id: "json", label: "JSON" },
 ];
 
+const COLORS_URL = "https://colors.modul4r.com";
+
+/** Reads a hex list from "#palette=aabbcc-112233" or any pasted text of hex codes. */
+function parseHexes(text: string): Swatch[] {
+  return (text.match(/#?\b[0-9a-f]{6}\b/gi) ?? [])
+    .slice(0, 10)
+    .map((h) => ({ hex: `#${h.replace("#", "").toLowerCase()}`, share: 0 }));
+}
+
+function fromHash(): Swatch[] | null {
+  const m = location.hash.match(/palette=([0-9a-f,-]+)/i);
+  const s = m ? parseHexes(m[1].replace(/[-,]/g, " ")) : [];
+  return s.length ? s : null;
+}
+
 function serialize(swatches: Swatch[], format: Format): string {
   const names = swatches.map((_, i) => `color-${i + 1}`);
   switch (format) {
@@ -38,7 +53,8 @@ export default function PalettePanel() {
   const source = useEditor((s) => s.source);
   const pickColor = useEditor((s) => s.pickColor);
 
-  const [swatches, setSwatches] = useState<Swatch[] | null>(null);
+  // A palette sent from colors.modul4r.com arrives in the URL hash.
+  const [swatches, setSwatches] = useState<Swatch[] | null>(fromHash);
   const [count, setCount] = useState(6);
   const [format, setFormat] = useState<Format>("hex");
   const [busy, setBusy] = useState(false);
@@ -89,7 +105,7 @@ export default function PalettePanel() {
             <button
               key={`${s.hex}-${i}`}
               type="button"
-              title={`${s.hex} · ${(s.share * 100).toFixed(0)}% of the image`}
+              title={s.share ? `${s.hex} · ${(s.share * 100).toFixed(0)}% of the image` : s.hex}
               onClick={() => pickColor(s.hex)}
               style={{ backgroundColor: s.hex }}
             />
@@ -135,6 +151,29 @@ export default function PalettePanel() {
       >
         {copied ? "Copied" : "Copy"}
       </button>
+
+      <div className="mt-1 grid grid-cols-2 gap-1">
+        <button
+          type="button"
+          className="btn btn-sm"
+          title="Paste hex codes, for example from colors.modul4r.com"
+          onClick={async () => {
+            const s = parseHexes(await navigator.clipboard.readText().catch(() => ""));
+            if (s.length) setSwatches(s);
+          }}
+        >
+          Paste
+        </button>
+        <a
+          className={`btn btn-sm ${swatches ? "" : "pointer-events-none opacity-40"}`}
+          href={swatches ? `${COLORS_URL}/#p=${swatches.map((s) => s.hex.slice(1)).join("-")}` : undefined}
+          target="_blank"
+          rel="noreferrer"
+          title="Edit this palette in colors"
+        >
+          Edit ↗
+        </a>
+      </div>
     </div>
   );
 }
