@@ -33,7 +33,7 @@ export default function ToolRail() {
           <div className="stamp mb-2">{GROUP_LABELS[group]}</div>
           {/* Two columns: 14 short labels stacked single-file made the rail 654px tall,
               which left no room for the selected tool's controls below it. */}
-          <div className="grid grid-cols-2 gap-1">
+          <div className="grid grid-cols-2 gap-0.5">
             {byGroup.get(group)!.map((meta) => {
               const op = ops.find((o) => o.type === meta.type);
               const active = op && op.id === activeOpId;
@@ -46,16 +46,20 @@ export default function ToolRail() {
                   data-tool={meta.type}
                   onClick={() => addOp(meta.type)}
                   title={meta.blurb}
-                  className={`tile tile-interactive flex h-10 min-w-0 items-center gap-1.5 px-2 text-left text-[11px] md:h-8 ${
-                    active ? "border-accent" : ""
+                  className={`flex h-9 min-w-0 items-center gap-2 rounded-md px-2.5 text-left text-[13px] transition-colors md:h-8 ${
+                    active
+                      ? "bg-surface-alt text-text shadow-[inset_0_0_0_1px_rgb(var(--line-strong))]"
+                      : op
+                        ? "text-text hover:bg-surface-alt"
+                        : "text-text-muted hover:bg-surface-alt hover:text-text"
                   }`}
                 >
-                  <span
-                    className={`h-1.5 w-1.5 shrink-0 rounded-full ${
-                      op ? (op.enabled ? "bg-accent" : "bg-border") : "bg-transparent ring-1 ring-border"
-                    }`}
-                  />
-                  <span className="display truncate">{meta.short ?? meta.label}</span>
+                  {/* A dot only for tools already in the stack. Hollow rings on every
+                      button read as unchecked radio buttons. */}
+                  {op && (
+                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${op.enabled ? "bg-accent" : "bg-faint"}`} />
+                  )}
+                  <span className="truncate">{meta.short ?? meta.label}</span>
                 </button>
               );
             })}
