@@ -11,6 +11,10 @@
       name="description"
       content="Remove backgrounds, extract palettes, swap colours, crop, upscale and convert images — all locally in your browser. Nothing is uploaded."
     />
+    <meta name="theme-color" content="#000000" />
+    <script>
+      if (localStorage.getItem("theme") === "light") document.documentElement.classList.add("light");
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href="https://images.modul4r.com/" />
     <meta name="author" content="Modul4r" />

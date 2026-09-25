@@ -13,6 +13,9 @@ export default {
         border: "rgb(var(--border) / <alpha-value>)",
         accent: "rgb(var(--accent) / <alpha-value>)",
         "accent-fg": "rgb(var(--accent-fg) / <alpha-value>)",
+        "line-strong": "rgb(var(--line-strong) / <alpha-value>)",
+        "line-hover": "rgb(var(--line-hover) / <alpha-value>)",
+        faint: "rgb(var(--faint) / <alpha-value>)",
       },
       fontFamily: {
         sans: ["Geist", "ui-sans-serif", "system-ui", "sans-serif"],

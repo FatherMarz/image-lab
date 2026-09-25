@@ -10,6 +10,7 @@ import StackPanel from "./components/StackPanel";
 import ToolRail from "./components/ToolRail";
 import Viewport from "./components/Viewport";
 import { useMediaQuery } from "./lib/useMediaQuery";
+import { useTheme } from "./lib/useTheme";
 import { useEditor } from "./stores/editorStore";
 
 type MobileTab = "tools" | "colour" | "export" | "info";
@@ -217,13 +218,15 @@ function MobileWorkspace() {
 export default function App() {
   const source = useEditor((s) => s.source);
   const reset = useEditor((s) => s.reset);
+  const { theme, toggle } = useTheme();
+  const light = theme === "light";
   // Height matters as much as width: a phone in landscape is often ≥768px wide but only
   // ~390px tall, where the two stacked desktop rails have nowhere to go. Gate on both.
   const isDesktop = useMediaQuery("(min-width: 768px) and (min-height: 600px)");
 
   return (
     <div className="page flex h-dvh flex-col overflow-hidden">
-      <header className="relative z-10 flex h-14 shrink-0 items-center justify-between gap-3 border-b border-border bg-black/60 px-4 backdrop-blur">
+      <header className="relative z-10 flex h-14 shrink-0 items-center justify-between gap-3 border-b border-border bg-bg/60 px-4 backdrop-blur">
         <div className="flex min-w-0 items-center gap-2.5">
           <a href="/" className="flex items-center gap-2.5">
             <span className="flex h-6 items-end gap-[3px]" aria-hidden>
@@ -251,6 +254,23 @@ export default function App() {
           >
             Source
           </a>
+          <button
+            type="button"
+            className="link flex h-8 w-8 items-center justify-center rounded-md hover:bg-surface-alt"
+            onClick={toggle}
+            aria-label={light ? "Switch to dark mode" : "Switch to light mode"}
+            title={light ? "Dark mode" : "Light mode"}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden>
+              <path
+                d={
+                  light
+                    ? "M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"
+                    : "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+                }
+              />
+            </svg>
+          </button>
           {source && (
             <button type="button" className="btn btn-sm ml-1" onClick={reset}>
               New image

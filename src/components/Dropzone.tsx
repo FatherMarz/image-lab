@@ -49,7 +49,7 @@ export default function Dropzone() {
           never leaves this browser — there is no server to send it to.
         </p>
 
-        <div className="tile p-2 text-left shadow-[0_30px_80px_-20px_rgba(0,0,0,.8)]">
+        <div className="tile p-2 text-left shadow-[var(--card-shadow)]">
           <button
             type="button"
             onClick={() => input.current?.click()}
@@ -59,8 +59,8 @@ export default function Dropzone() {
             }}
             onDragLeave={() => setOver(false)}
             onDrop={onDrop}
-            className={`flex h-56 w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed bg-black transition-colors ${
-              over ? "border-text bg-surface-alt" : "border-[#2e2e2e] hover:border-[#4a4a4a]"
+            className={`flex h-56 w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed bg-bg transition-colors ${
+              over ? "border-text bg-surface-alt" : "border-line-strong hover:border-line-hover"
             }`}
           >
             <span className="text-[15px] font-medium">Drop an image</span>
