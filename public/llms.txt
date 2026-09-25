@@ -1,0 +1,33 @@
+# Image Lab
+
+> Image Lab edits images entirely inside your browser: remove or replace
+> backgrounds, extract a colour palette, swap or delete colours, adjust,
+> crop, resize, rotate, redact and convert formats. Nothing is uploaded.
+
+## What it does
+
+- Removes a subject's background, with an outline-and-shadow cutout style.
+- Replaces the background with a solid colour, gradient or image.
+- Extracts a colour palette from an image, and swaps, deletes or duotones
+  colours.
+- Adjusts brightness, contrast, saturation and sharpness.
+- Simulates colourblindness (deuteranopia, protanopia, tritanopia).
+- Redacts parts of an image by pixelating or blocking them out.
+- Crops, resizes and upscales, rotates and flips.
+- Dithers to Floyd-Steinberg or Atkinson, in colour or monochrome.
+- Vectorizes a raster image to SVG, in colour, line art or pixel-art mode.
+- Converts between PNG, JPG, WebP, AVIF and SVG.
+- Batches the same edits across multiple images at once.
+
+## How it works
+
+Every edit runs locally using WebAssembly and, where available, the GPU. No
+image is uploaded, stored on a server, or seen by anyone else.
+
+## Pages
+
+- [Image Lab](https://images.modul4r.com/): drop an image and start editing.
+
+## Contact
+
+More tools at https://modul4r.com

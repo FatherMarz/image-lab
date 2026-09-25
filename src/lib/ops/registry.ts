@@ -64,7 +64,7 @@ export const OP_META: Record<string, OpMeta> = {
     defaults: {
       mode: "none",
       color: "#f4f1e8",
-      color2: "#d69c4a",
+      color2: "#7c5cff",
       angle: 90,
       assetId: "",
     },
@@ -137,9 +137,9 @@ export const OP_META: Record<string, OpMeta> = {
     // A near-black to near-white ramp is just greyscale, which is a pointless default
     // for a duotone. Ramp into the accent so the tool shows what it does on contact.
     defaults: {
-      shadow: "#242721",
-      mid: "#7a8057",
-      highlight: "#d69c4a",
+      shadow: "#0b0d17",
+      mid: "#2ec5ff",
+      highlight: "#7c5cff",
       useMid: false,
       amount: 100,
     },

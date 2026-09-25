@@ -15,8 +15,9 @@ export default {
         "accent-fg": "rgb(var(--accent-fg) / <alpha-value>)",
       },
       fontFamily: {
-        display: ['"JetBrains Mono"', "ui-monospace", "monospace"],
-        mono: ['"JetBrains Mono"', "ui-monospace", "monospace"],
+        sans: ["Geist", "ui-sans-serif", "system-ui", "sans-serif"],
+        display: ["Geist", "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ['"Geist Mono"', "ui-monospace", "monospace"],
       },
     },
   },

@@ -48,7 +48,7 @@ export default function Viewport() {
       cx.restore();
 
       const x = Math.round(c.width * split);
-      cx.fillStyle = "rgb(214, 156, 74)";
+      cx.fillStyle = "rgb(237, 237, 237)";
       cx.fillRect(x - 1, 0, 2, c.height);
     }
 
@@ -66,7 +66,7 @@ export default function Viewport() {
       cx.fillRect(0, ry, rx, rh);
       cx.fillRect(rx + rw, ry, c.width - (rx + rw), rh);
 
-      cx.strokeStyle = "rgb(214, 156, 74)";
+      cx.strokeStyle = "rgb(237, 237, 237)";
       cx.lineWidth = Math.max(1, c.width / 400);
       cx.strokeRect(rx, ry, rw, rh);
 

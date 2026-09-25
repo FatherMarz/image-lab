@@ -223,28 +223,40 @@ export default function App() {
 
   return (
     <div className="page flex h-dvh flex-col overflow-hidden">
-      <header className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-4 py-3">
-        <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
-          <span className="display text-sm">image lab</span>
-          <a className="link text-[11px] text-text-muted" href="https://modul4r.com">
-            a modul4r tool
+      <header className="relative z-10 flex h-14 shrink-0 items-center justify-between gap-3 border-b border-border bg-black/60 px-4 backdrop-blur">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <a href="/" className="flex items-center gap-2.5">
+            <span className="flex h-6 items-end gap-[3px]" aria-hidden>
+              {["#7c5cff", "#2ec5ff", "#35e0a1", "#5b5bf0", "#ededed"].map((c, i) => (
+                <span key={c} className="w-[5px] rounded-full" style={{ backgroundColor: c, height: `${14 + ((i * 7) % 11)}px` }} />
+              ))}
+            </span>
+            <span className="text-[15px] font-semibold tracking-tight">Image Lab</span>
+          </a>
+          <a className="link hidden text-[13px] sm:inline" href="https://modul4r.com">
+            by modul4r
+          </a>
+        </div>
+        <nav className="flex shrink-0 items-center gap-1 text-[13px]">
+          <a className="link rounded-md px-2.5 py-1.5 hover:bg-surface-alt" href="https://colors.modul4r.com">
+            Colors
           </a>
           {/* AGPL-3.0 obliges us to offer the source to anyone using this over a
               network, and this is the network. */}
           <a
-            className="link text-[11px] text-text-muted"
+            className="link rounded-md px-2.5 py-1.5 hover:bg-surface-alt"
             href="https://github.com/FatherMarz/image-lab"
             target="_blank"
             rel="noreferrer"
           >
-            source
+            Source
           </a>
-        </div>
-        {source && (
-          <button type="button" className="btn btn-sm shrink-0" onClick={reset}>
-            New image
-          </button>
-        )}
+          {source && (
+            <button type="button" className="btn btn-sm ml-1" onClick={reset}>
+              New image
+            </button>
+          )}
+        </nav>
       </header>
 
       {source ? (

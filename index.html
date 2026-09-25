@@ -9,7 +9,7 @@
     <title>Image Lab | Home</title>
     <meta
       name="description"
-      content="Remove backgrounds, extract palettes, swap and delete colours, crop, upscale and convert images. Everything runs locally in your browser — nothing is uploaded and nothing is stored."
+      content="Remove backgrounds, extract palettes, swap colours, crop, upscale and convert images — all locally in your browser. Nothing is uploaded."
     />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href="https://images.modul4r.com/" />
@@ -26,50 +26,78 @@
 
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://images.modul4r.com/" />
-    <meta property="og:title" content="image lab — a local image suite" />
+    <meta property="og:title" content="Image Lab | Home" />
     <meta
       property="og:description"
       content="Remove backgrounds, extract palettes, swap colours, crop and convert. Runs entirely in your browser; nothing is uploaded."
     />
-    <meta property="og:site_name" content="image lab — a Modul4r tool" />
+    <meta property="og:image" content="https://images.modul4r.com/og.png" />
+    <meta property="og:site_name" content="Image Lab — a Modul4r tool" />
 
-    <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="image lab — a local image suite" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Image Lab | Home" />
     <meta
       name="twitter:description"
       content="Remove backgrounds, extract palettes, swap colours, crop and convert. Runs entirely in your browser."
     />
+    <meta name="twitter:image" content="https://images.modul4r.com/og.png" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
 
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "WebApplication",
-        "name": "image lab",
-        "url": "https://images.modul4r.com/",
-        "applicationCategory": "MultimediaApplication",
-        "operatingSystem": "Any",
-        "description": "Local, in-browser image suite: background removal, colour palette extraction, colour swap and delete, crop, upscale and format conversion. No upload, no server.",
-        "offers": { "@type": "Offer", "price": "0" },
-        "publisher": {
-          "@type": "Organization",
-          "name": "Modul4r",
-          "url": "https://modul4r.com"
-        }
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://images.modul4r.com/#site",
+            "name": "Image Lab",
+            "url": "https://images.modul4r.com/",
+            "inLanguage": "en",
+            "publisher": { "@id": "https://images.modul4r.com/#org" }
+          },
+          {
+            "@type": "Organization",
+            "@id": "https://images.modul4r.com/#org",
+            "name": "Modul4r",
+            "url": "https://modul4r.com"
+          },
+          {
+            "@type": "WebApplication",
+            "@id": "https://images.modul4r.com/#app",
+            "name": "Image Lab",
+            "url": "https://images.modul4r.com/",
+            "applicationCategory": "MultimediaApplication",
+            "operatingSystem": "Any",
+            "description": "Local, in-browser image suite: background removal, colour palette extraction, colour swap and delete, crop, upscale and format conversion. No upload, no server.",
+            "offers": { "@type": "Offer", "price": "0" },
+            "publisher": { "@id": "https://images.modul4r.com/#org" }
+          }
+        ]
       }
     </script>
   </head>
   <body>
     <div id="root"></div>
     <noscript>
-      image lab edits images locally in your browser and needs JavaScript. More tools at
-      <a href="https://modul4r.com">modul4r.com</a>.
+      <h1>Image Lab</h1>
+      <p>
+        Image Lab edits images entirely inside your browser: remove or
+        replace a background, extract a colour palette, swap, delete or
+        duotone colours, adjust brightness and contrast, redact parts of an
+        image, crop, resize, upscale, rotate and dither. It also vectorizes a
+        raster image to SVG and converts between PNG, JPG, WebP, AVIF and
+        SVG, and can apply the same edits to a batch of images at once. Every
+        edit runs locally using WebAssembly and, where available, the GPU —
+        no image is ever uploaded or stored on a server. This page needs
+        JavaScript enabled to load an image and start editing.
+      </p>
+      <p>More tools at <a href="https://modul4r.com">modul4r.com</a>.</p>
     </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
