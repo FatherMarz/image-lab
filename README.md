@@ -6,9 +6,6 @@ no server to upload to.
 
 Live at **[images.modul4r.com](https://images.modul4r.com)**. A [modul4r](https://modul4r.com) tool.
 
-Replaces `bg-remover`, a local Flask app that needed Python and a `pip install` to do
-one of these jobs.
-
 ## Tools
 
 | Group | Tools |
@@ -59,6 +56,7 @@ npm run e2e:transform    # crop/resize/rotate, asserted on exported PNG headers
 npm run e2e:privacy      # EXIF, redaction, dither, SVG
 npm run e2e:trace        # Vectorize: traces the preview, knobs, pinned last, export
 npm run e2e:batch        # batch + icon set, asserted on zip contents
+npm run e2e:layout       # panel and viewport layout
 npm run e2e:bg           # background removal, WASM path (~25s/cutout)
 HEADED=1 npm run e2e:bg  # background removal, WebGPU path (~0.6s/cutout)
 ```
@@ -95,8 +93,8 @@ fp16 is a hard `std::bad_alloc` on the WASM backend.
 | Anything | [`onnx-community/ISNet-ONNX`](https://huggingface.co/onnx-community/ISNet-ONNX) | AGPL-3.0 |
 | People | [`onnx-community/ormbg-ONNX`](https://huggingface.co/onnx-community/ormbg-ONNX) | Apache-2.0 |
 
-`probe.html` is a dev-only harness that measures which (model, dtype, device) combos
-actually run. It exists because most of them don't, and the model cards don't say:
+Most (model, dtype, device) combinations do not run, and the model cards don't say
+which. Tested results:
 
 - **BiRefNet_lite** (MIT) — unusable. Exceeds WebGPU's per-shader storage-buffer limit
   (needs 11, Macs allow 10) *and* OOMs on WASM at every dtype.
@@ -106,8 +104,7 @@ actually run. It exists because most of them don't, and the model cards don't sa
 - **RMBG-1.4 / 2.0** — non-commercial and gated.
 - **@imgly/background-removal** — AGPL-3.0 with a paid opt-out.
 
-Re-run the probe when transformers.js or onnxruntime-web updates; these results will
-move.
+These results may change when transformers.js or onnxruntime-web updates.
 
 ## Licence
 
@@ -117,3 +114,5 @@ Not a preference. ISNet is the only general-purpose background model that actual
 in a browser, and it's published under AGPL-3.0. Everything permissive was either
 portrait-only or wouldn't run at all. The alternative was a background remover that
 only worked on photos of people.
+
+Built by Marcello Delcaro, AI-assisted.
