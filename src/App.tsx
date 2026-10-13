@@ -256,6 +256,13 @@ export default function App() {
           </a>
           <button
             type="button"
+            data-cookie-settings
+            className="link hidden rounded-md px-2.5 py-1.5 hover:bg-surface-alt sm:inline"
+          >
+            Cookie&nbsp;settings
+          </button>
+          <button
+            type="button"
             className="link flex h-8 w-8 items-center justify-center rounded-md hover:bg-surface-alt"
             onClick={toggle}
             aria-label={light ? "Switch to dark mode" : "Switch to light mode"}
